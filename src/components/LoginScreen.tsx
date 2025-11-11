@@ -24,7 +24,7 @@ export const LoginScreen = () => {
     const newPlayer: Player = {
       id: Math.random().toString(36).substr(2, 9),
       nickname: nickname.trim(),
-      money: 5000,
+      money: 10000,
       houseLevel: 1,
       selectedCard: null,
       inventory: []
