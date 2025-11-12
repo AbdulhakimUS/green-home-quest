@@ -36,7 +36,7 @@ export const HomeTab = () => {
       <div className="text-center space-y-2">
         <Building2 className="w-16 h-16 mx-auto text-primary" />
         <h2 className="text-2xl font-bold">Ваш Эко Дом</h2>
-        <p className="text-muted-foreground">Уровень {player?.houseLevel || 1}/10</p>
+        <p className="text-muted-foreground">Уровень {player?.house_level || 1}/25</p>
       </div>
 
       {/* Визуализация местности с домом */}

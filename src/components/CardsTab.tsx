@@ -46,7 +46,7 @@ export const CardsTab = () => {
       <div className="grid gap-4">
         {cards.map((card) => {
           const Icon = card.icon;
-          const isSelected = player?.selectedCard === card.type;
+          const isSelected = player?.selected_card === card.type;
           
           return (
             <Card

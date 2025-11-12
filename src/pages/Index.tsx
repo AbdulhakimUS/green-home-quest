@@ -6,13 +6,22 @@ import { HomeTab } from "@/components/HomeTab";
 import { CardsTab } from "@/components/CardsTab";
 import { ShopTab } from "@/components/ShopTab";
 import { AdminPanel } from "@/components/AdminPanel";
+import { Footer } from "@/components/Footer";
 
 const GameContent = () => {
-  const { player, isAdmin } = useGame();
+  const { player, isAdmin, setPlayer, setIsAdmin, setGameSession } = useGame();
   const [activeTab, setActiveTab] = useState("home");
 
+  const handleLogin = (playerData: any, session: any, admin: boolean) => {
+    setIsAdmin(admin);
+    setGameSession(session);
+    if (playerData) {
+      setPlayer(playerData);
+    }
+  };
+
   if (!player && !isAdmin) {
-    return <LoginScreen />;
+    return <LoginScreen onLogin={handleLogin} />;
   }
 
   if (isAdmin) {
@@ -20,16 +29,18 @@ const GameContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <GameNavbar activeTab={activeTab} onTabChange={setActiveTab} />
       
-      <main className="pt-[7.5rem] pb-8 px-4 lg:pl-28 lg:pt-20">
+      <main className="flex-1 pt-24 pb-20 px-4 lg:pl-72 lg:pt-24 lg:pb-8">
         <div className="max-w-2xl mx-auto">
           {activeTab === "home" && <HomeTab />}
           {activeTab === "cards" && <CardsTab />}
           {activeTab === "shop" && <ShopTab />}
         </div>
       </main>
+      
+      <Footer />
     </div>
   );
 };

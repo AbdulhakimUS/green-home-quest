@@ -2,49 +2,140 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useGame } from "@/contexts/GameContext";
-import { Player } from "@/types/game";
-import { toast } from "sonner";
 import { Home, Leaf } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
-export const LoginScreen = () => {
+interface LoginScreenProps {
+  onLogin: (player: any, session: any, isAdmin: boolean) => void;
+}
+
+export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
+  const [isAdmin, setIsAdmin] = useState(false);
   const [gameCode, setGameCode] = useState("");
   const [nickname, setNickname] = useState("");
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminLogin, setAdminLogin] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
-  const { setPlayer, setIsAdmin, setGameCode: setGlobalGameCode, addPlayer } = useGame();
+  const [loading, setLoading] = useState(false);
 
-  const handlePlayerJoin = () => {
-    if (!gameCode.trim() || !nickname.trim()) {
-      toast.error("Пожалуйста, заполните все поля");
+  const handlePlayerLogin = async () => {
+    if (!gameCode || !nickname) {
+      toast({
+        title: "Ошибка",
+        description: "Заполните все поля",
+        variant: "destructive"
+      });
       return;
     }
 
-    const newPlayer: Player = {
-      id: Math.random().toString(36).substr(2, 9),
-      nickname: nickname.trim(),
-      money: 10000,
-      houseLevel: 1,
-      selectedCard: null,
-      inventory: []
-    };
+    if (!/^\d{6}$/.test(gameCode)) {
+      toast({
+        title: "Ошибка",
+        description: "Код должен состоять из 6 цифр",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    setPlayer(newPlayer);
-    setGlobalGameCode(gameCode);
-    addPlayer(newPlayer);
-    toast.success(`Добро пожаловать, ${nickname}!`);
+    setLoading(true);
+
+    const { data: session, error: sessionError } = await supabase
+      .from('game_sessions')
+      .select('*')
+      .eq('code', gameCode)
+      .single();
+
+    if (sessionError || !session) {
+      toast({
+        title: "Ошибка",
+        description: "Игра с таким кодом не найдена",
+        variant: "destructive"
+      });
+      setLoading(false);
+      return;
+    }
+
+    const { data: existingPlayer } = await supabase
+      .from('players')
+      .select('*')
+      .eq('session_id', session.id)
+      .eq('nickname', nickname)
+      .single();
+
+    if (existingPlayer) {
+      toast({
+        title: "Ошибка",
+        description: "Этот никнейм уже занят",
+        variant: "destructive"
+      });
+      setLoading(false);
+      return;
+    }
+
+    const { data: newPlayer, error: playerError } = await supabase
+      .from('players')
+      .insert({
+        session_id: session.id,
+        nickname,
+        money: 10000,
+        house_level: 1,
+        selected_card: null,
+        inventory: []
+      })
+      .select()
+      .single();
+
+    if (playerError || !newPlayer) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось создать игрока",
+        variant: "destructive"
+      });
+      setLoading(false);
+      return;
+    }
+
+    setLoading(false);
+    onLogin({ ...newPlayer, inventory: [] }, session, false);
   };
 
-  const handleAdminLogin = () => {
-    if (adminLogin === "eco-home" && adminPassword === "Shkola74") {
-      setIsAdmin(true);
-      const adminCode = Math.random().toString(36).substr(2, 6).toUpperCase();
-      setGlobalGameCode(adminCode);
-      toast.success(`Игра создана! Код: ${adminCode}`);
-    } else {
-      toast.error("Неверный логин или пароль");
+  const handleAdminLogin = async () => {
+    if (adminLogin !== "eco-home" || adminPassword !== "Shkola74") {
+      toast({
+        title: "Ошибка",
+        description: "Неверный логин или пароль",
+        variant: "destructive"
+      });
+      return;
     }
+
+    setLoading(true);
+
+    const { data: codeData } = await supabase.rpc('generate_game_code');
+    const newGameCode = codeData as string;
+
+    const { data: session, error: sessionError } = await supabase
+      .from('game_sessions')
+      .insert({
+        code: newGameCode,
+        status: 'waiting',
+        timer_duration: 1800
+      })
+      .select()
+      .single();
+
+    if (sessionError || !session) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось создать игру",
+        variant: "destructive"
+      });
+      setLoading(false);
+      return;
+    }
+
+    setLoading(false);
+    onLogin(null, session, true);
   };
 
   return (
@@ -59,30 +150,36 @@ export const LoginScreen = () => {
           <p className="text-muted-foreground">Создайте самый экологичный дом!</p>
         </div>
 
-        {!showAdminLogin ? (
+        {!isAdmin ? (
           <Card className="border-2 shadow-lg">
             <CardHeader>
               <CardTitle>Присоединиться к игре</CardTitle>
-              <CardDescription>Введите код игры и выберите никнейм</CardDescription>
+              <CardDescription>Введите 6-значный код игры и никнейм</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Input
-                placeholder="Код игры"
+                placeholder="Код игры (6 цифр)"
                 value={gameCode}
                 onChange={(e) => setGameCode(e.target.value)}
                 className="text-center text-lg font-semibold"
+                maxLength={6}
               />
               <Input
                 placeholder="Ваш никнейм"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
               />
-              <Button onClick={handlePlayerJoin} className="w-full" size="lg">
-                Начать игру
+              <Button 
+                onClick={handlePlayerLogin} 
+                className="w-full" 
+                size="lg"
+                disabled={loading}
+              >
+                {loading ? "Загрузка..." : "Начать игру"}
               </Button>
               <Button
                 variant="ghost"
-                onClick={() => setShowAdminLogin(true)}
+                onClick={() => setIsAdmin(true)}
                 className="w-full text-sm"
               >
                 Создать игру (админ)
@@ -107,12 +204,17 @@ export const LoginScreen = () => {
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
               />
-              <Button onClick={handleAdminLogin} className="w-full" size="lg">
-                Создать игру
+              <Button 
+                onClick={handleAdminLogin} 
+                className="w-full" 
+                size="lg"
+                disabled={loading}
+              >
+                {loading ? "Создание..." : "Создать игру"}
               </Button>
               <Button
                 variant="ghost"
-                onClick={() => setShowAdminLogin(false)}
+                onClick={() => setIsAdmin(false)}
                 className="w-full"
               >
                 Назад

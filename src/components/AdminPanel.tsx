@@ -1,64 +1,134 @@
-import { Users, TrendingUp, Coins, Home } from "lucide-react";
+import { Users, TrendingUp, Coins, Play, Clock, History } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGame } from "@/contexts/GameContext";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Player } from "@/types/game";
+import { Input } from "@/components/ui/input";
+import { toast } from "@/hooks/use-toast";
+import { PurchaseHistory } from "./PurchaseHistory";
 
 export const AdminPanel = () => {
-  const { allPlayers, gameCode } = useGame();
-  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const { allPlayers, gameSession, startGame, timeRemaining } = useGame();
+  const [selectedPlayer, setSelectedPlayer] = useState<any | null>(null);
+  const [timerMinutes, setTimerMinutes] = useState("30");
+  const [showHistory, setShowHistory] = useState(false);
+
+  const handleStartGame = () => {
+    const minutes = parseInt(timerMinutes);
+    if (isNaN(minutes) || minutes <= 0) {
+      toast({
+        title: "Ошибка",
+        description: "Введите корректное время",
+        variant: "destructive"
+      });
+      return;
+    }
+    startGame(minutes);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
     <>
-      <div className="space-y-6 animate-fade-in p-4">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Админ Панель</h1>
-          <p className="text-muted-foreground">Код игры: <span className="font-mono font-bold text-primary">{gameCode}</span></p>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Участники игры
-            </CardTitle>
-            <CardDescription>Всего игроков: {allPlayers.length}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {allPlayers.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">Пока нет участников</p>
-            ) : (
-              allPlayers.map((player) => (
-                <Card
-                  key={player.id}
-                  className="cursor-pointer hover-scale"
-                  onClick={() => setSelectedPlayer(player)}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">{player.nickname}</CardTitle>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <TrendingUp className="w-4 h-4" />
-                        Ур. {player.houseLevel}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Баланс:</span>
-                      <span className="font-semibold flex items-center gap-1">
-                        <Coins className="w-4 h-4 text-warning" />
-                        {player.money}$
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+      <div className="min-h-screen bg-background p-4 space-y-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center space-y-2 mb-6">
+            <h1 className="text-3xl font-bold">Админ Панель</h1>
+            <p className="text-xl text-muted-foreground">
+              Код игры: <span className="font-mono font-bold text-primary text-2xl">{gameSession?.code}</span>
+            </p>
+            {gameSession && (
+              <div className="inline-block px-4 py-2 rounded-full border-2" style={{
+                borderColor: gameSession.status === 'waiting' ? 'hsl(var(--warning))' :
+                  gameSession.status === 'active' ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))',
+                backgroundColor: gameSession.status === 'waiting' ? 'hsl(var(--warning) / 0.1)' :
+                  gameSession.status === 'active' ? 'hsl(var(--success) / 0.1)' : 'hsl(var(--muted) / 0.1)'
+              }}>
+                <span className="font-semibold">
+                  {gameSession.status === 'waiting' && "Ожидание"}
+                  {gameSession.status === 'active' && `Игра идет: ${timeRemaining ? formatTime(timeRemaining) : ''}`}
+                  {gameSession.status === 'finished' && "Игра завершена"}
+                </span>
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+
+          {gameSession?.status === 'waiting' && (
+            <Card className="mb-6 border-primary">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Play className="w-5 h-5" />
+                  Запуск игры
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="text-sm text-muted-foreground">Время игры (минуты)</label>
+                    <Input
+                      type="number"
+                      value={timerMinutes}
+                      onChange={(e) => setTimerMinutes(e.target.value)}
+                      min="1"
+                      placeholder="30"
+                    />
+                  </div>
+                  <Button onClick={handleStartGame} size="lg" className="mt-6">
+                    <Play className="w-4 h-4 mr-2" />
+                    Начать игру
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Участники игры
+              </CardTitle>
+              <CardDescription>Всего игроков: {allPlayers.length}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {allPlayers.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">Пока нет участников</p>
+              ) : (
+                allPlayers.map((player) => (
+                  <Card
+                    key={player.id}
+                    className="cursor-pointer hover-scale"
+                    onClick={() => setSelectedPlayer(player)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base">{player.nickname}</CardTitle>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <TrendingUp className="w-4 h-4" />
+                          Ур. {player.house_level.toFixed(2)}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Баланс:</span>
+                        <span className="font-semibold flex items-center gap-1">
+                          <Coins className="w-4 h-4 text-warning" />
+                          {player.money}$
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <Dialog open={!!selectedPlayer} onOpenChange={(open) => !open && setSelectedPlayer(null)}>
@@ -70,7 +140,6 @@ export const AdminPanel = () => {
             <div className="space-y-4">
               <div className="text-center p-4 bg-muted rounded-lg">
                 <h3 className="text-2xl font-bold mb-2">{selectedPlayer.nickname}</h3>
-                <p className="text-sm text-muted-foreground">ID: {selectedPlayer.id}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -94,10 +163,19 @@ export const AdminPanel = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-2xl font-bold">{selectedPlayer.houseLevel}/10</p>
+                    <p className="text-2xl font-bold">{selectedPlayer.house_level.toFixed(2)}/25</p>
                   </CardContent>
                 </Card>
               </div>
+
+              <Button 
+                onClick={() => setShowHistory(true)} 
+                className="w-full"
+                variant="outline"
+              >
+                <History className="w-4 h-4 mr-2" />
+                История покупок
+              </Button>
 
               <Card>
                 <CardHeader>
@@ -108,7 +186,7 @@ export const AdminPanel = () => {
                     <p className="text-sm text-muted-foreground">Пусто</p>
                   ) : (
                     <div className="space-y-2">
-                      {selectedPlayer.inventory.map((item, idx) => (
+                      {selectedPlayer.inventory.map((item: any, idx: number) => (
                         <div
                           key={idx}
                           className="flex items-center justify-between text-sm p-2 bg-muted rounded"
@@ -128,12 +206,12 @@ export const AdminPanel = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm">
-                    {selectedPlayer.selectedCard
-                      ? selectedPlayer.selectedCard === "energy"
-                        ? "Энергия"
-                        : selectedPlayer.selectedCard === "water"
-                        ? "Вода"
-                        : "Зелень"
+                    {selectedPlayer.selected_card
+                      ? selectedPlayer.selected_card === "energy"
+                        ? "⚡ Энергия"
+                        : selectedPlayer.selected_card === "water"
+                        ? "💧 Вода"
+                        : "🌿 Зелень"
                       : "Не выбрана"}
                   </p>
                 </CardContent>
@@ -142,6 +220,14 @@ export const AdminPanel = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {selectedPlayer && (
+        <PurchaseHistory
+          playerId={selectedPlayer.id}
+          open={showHistory}
+          onOpenChange={setShowHistory}
+        />
+      )}
     </>
   );
 };

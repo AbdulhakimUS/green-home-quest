@@ -12,7 +12,7 @@ export const ShopTab = () => {
   const { player, purchaseItem } = useGame();
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
 
-  if (!player?.selectedCard) {
+  if (!player?.selected_card) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 animate-fade-in">
         <AlertCircle className="w-16 h-16 text-warning" />
@@ -24,7 +24,7 @@ export const ShopTab = () => {
     );
   }
 
-  const items = shopItems[player.selectedCard];
+  const items = shopItems[player.selected_card];
 
   const handlePurchase = (item: ShopItem) => {
     const existingItem = player.inventory.find(
@@ -65,7 +65,7 @@ export const ShopTab = () => {
           <ShoppingBag className="w-12 h-12 mx-auto text-primary" />
           <h2 className="text-2xl font-bold">Магазин</h2>
           <p className="text-muted-foreground">
-            Категория: {player.selectedCard === "energy" ? "Энергия" : player.selectedCard === "water" ? "Вода" : "Зелень"}
+            Категория: {player.selected_card === "energy" ? "Энергия" : player.selected_card === "water" ? "Вода" : "Зелень"}
           </p>
         </div>
 

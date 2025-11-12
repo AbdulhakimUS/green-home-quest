@@ -4,9 +4,10 @@ export interface Player {
   id: string;
   nickname: string;
   money: number;
-  houseLevel: number;
-  selectedCard: CardType | null;
+  house_level: number;
+  selected_card: CardType | null;
   inventory: ShopItem[];
+  session_id?: string;
 }
 
 export interface ShopItem {
