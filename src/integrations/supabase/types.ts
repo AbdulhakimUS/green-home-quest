@@ -14,13 +14,130 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      game_sessions: {
+        Row: {
+          code: string
+          created_at: string | null
+          id: string
+          started_at: string | null
+          status: string
+          timer_duration: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+          timer_duration?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+          timer_duration?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      players: {
+        Row: {
+          created_at: string | null
+          house_level: number | null
+          id: string
+          inventory: Json | null
+          money: number | null
+          nickname: string
+          selected_card: string | null
+          session_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          house_level?: number | null
+          id?: string
+          inventory?: Json | null
+          money?: number | null
+          nickname: string
+          selected_card?: string | null
+          session_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          house_level?: number | null
+          id?: string
+          inventory?: Json | null
+          money?: number | null
+          nickname?: string
+          selected_card?: string | null
+          session_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "game_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_history: {
+        Row: {
+          category: string
+          id: string
+          item_id: string
+          item_name: string
+          level: number
+          player_id: string
+          price: number
+          purchased_at: string | null
+          tier: number
+        }
+        Insert: {
+          category: string
+          id?: string
+          item_id: string
+          item_name: string
+          level: number
+          player_id: string
+          price: number
+          purchased_at?: string | null
+          tier: number
+        }
+        Update: {
+          category?: string
+          id?: string
+          item_id?: string
+          item_name?: string
+          level?: number
+          player_id?: string
+          price?: number
+          purchased_at?: string | null
+          tier?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_history_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_game_code: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
