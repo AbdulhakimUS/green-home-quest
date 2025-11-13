@@ -49,15 +49,27 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
   // Подписка на изменения игроков
   useEffect(() => {
-    if (!gameSession) return;
+    if (!gameSession?.id) {
+      console.log('❌ No gameSession, skipping player subscription');
+      return;
+    }
+
+    console.log('🔄 Setting up player subscription for session:', gameSession.id);
 
     const loadPlayers = async () => {
-      const { data } = await supabase
+      console.log('📥 Loading players for session:', gameSession.id);
+      const { data, error } = await supabase
         .from('players')
         .select('*')
         .eq('session_id', gameSession.id);
       
+      if (error) {
+        console.error('❌ Error loading players:', error);
+        return;
+      }
+      
       if (data) {
+        console.log('✅ Loaded players:', data.length);
         const players = data.map(p => ({
           ...p,
           selected_card: (p.selected_card as CardType) || null,
@@ -77,7 +89,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     loadPlayers();
 
     const channel = supabase
-      .channel('players-changes')
+      .channel(`players-changes-${gameSession.id}`)
       .on(
         'postgres_changes',
         {
@@ -86,23 +98,32 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           table: 'players',
           filter: `session_id=eq.${gameSession.id}`
         },
-        () => {
+        (payload) => {
+          console.log('🔔 Players changed:', payload);
           loadPlayers();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Player subscription status:', status);
+      });
 
     return () => {
+      console.log('🔌 Unsubscribing from players channel');
       supabase.removeChannel(channel);
     };
   }, [gameSession?.id]);
 
   // Подписка на изменения сессии
   useEffect(() => {
-    if (!gameSession) return;
+    if (!gameSession?.id) {
+      console.log('❌ No gameSession, skipping session subscription');
+      return;
+    }
+
+    console.log('🔄 Setting up session subscription for:', gameSession.id);
 
     const channel = supabase
-      .channel('session-changes')
+      .channel(`session-changes-${gameSession.id}`)
       .on(
         'postgres_changes',
         {
@@ -112,12 +133,16 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           filter: `id=eq.${gameSession.id}`
         },
         (payload) => {
+          console.log('🔔 Session updated:', payload.new);
           setGameSession(payload.new as GameSession);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Session subscription status:', status);
+      });
 
     return () => {
+      console.log('🔌 Unsubscribing from session channel');
       supabase.removeChannel(channel);
     };
   }, [gameSession?.id]);

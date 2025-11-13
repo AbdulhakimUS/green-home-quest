@@ -72,6 +72,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       return;
     }
 
+    console.log('🎮 Creating player for session:', session.id);
     const { data: newPlayer, error: playerError } = await supabase
       .from('players')
       .insert({
@@ -86,6 +87,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       .single();
 
     if (playerError || !newPlayer) {
+      console.error('❌ Error creating player:', playerError);
       toast({
         title: "Ошибка",
         description: "Не удалось создать игрока",
@@ -95,7 +97,12 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       return;
     }
 
+    console.log('✅ Player created:', newPlayer);
     setLoading(false);
+    toast({
+      title: "Успешно!",
+      description: `Добро пожаловать, ${nickname}!`,
+    });
     onLogin({ ...newPlayer, inventory: [] }, session, false);
   };
 
@@ -111,8 +118,10 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
     setLoading(true);
 
+    console.log('🎲 Generating game code...');
     const { data: codeData } = await supabase.rpc('generate_game_code');
     const newGameCode = codeData as string;
+    console.log('✅ Generated code:', newGameCode);
 
     const { data: session, error: sessionError } = await supabase
       .from('game_sessions')
@@ -125,6 +134,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       .single();
 
     if (sessionError || !session) {
+      console.error('❌ Error creating session:', sessionError);
       toast({
         title: "Ошибка",
         description: "Не удалось создать игру",
@@ -134,7 +144,12 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       return;
     }
 
+    console.log('✅ Session created:', session);
     setLoading(false);
+    toast({
+      title: "Игра создана!",
+      description: `Код игры: ${newGameCode}`,
+    });
     onLogin(null, session, true);
   };
 
