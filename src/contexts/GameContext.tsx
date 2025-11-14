@@ -11,6 +11,8 @@ interface Player {
   house_level: number;
   selected_card: CardType | null;
   inventory: ShopItem[];
+  oxygen: number;
+  completed_missions: string[];
 }
 
 interface GameSession {
@@ -19,6 +21,8 @@ interface GameSession {
   status: 'waiting' | 'active' | 'finished';
   timer_duration: number;
   started_at: string | null;
+  active_events: any[];
+  admin_reconnect_allowed: boolean;
 }
 
 interface GameContextType {
@@ -32,6 +36,8 @@ interface GameContextType {
   selectCard: (card: CardType) => void;
   purchaseItem: (item: ShopItem) => Promise<void>;
   startGame: (duration: number) => Promise<void>;
+  endGame: () => Promise<void>;
+  claimMissionReward: (missionId: string, reward: number) => Promise<void>;
   setPlayer: (player: Player | null) => void;
   setIsAdmin: (isAdmin: boolean) => void;
   setGameSession: (session: GameSession | null) => void;
@@ -73,7 +79,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         const players = data.map(p => ({
           ...p,
           selected_card: (p.selected_card as CardType) || null,
-          inventory: (p.inventory as any as ShopItem[]) || []
+          inventory: (p.inventory as any as ShopItem[]) || [],
+          completed_missions: (p.completed_missions as any as string[]) || []
         }));
         setAllPlayers(players);
         
@@ -215,6 +222,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     let price: number;
     let newLevel: number;
     let houseIncrease: number;
+    let oxygenIncrease = 0;
     
     if (existingItem) {
       newLevel = existingItem.level + 1;
@@ -245,14 +253,21 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     else if (item.tier === 5) houseIncrease = 1.25;
     else houseIncrease = 1.5;
 
+    // Растения увеличивают кислород
+    if (item.category === 'greenery') {
+      oxygenIncrease = item.tier * 2;
+    }
+
     const newHouseLevel = Math.min(25, player.house_level + houseIncrease);
     const newMoney = player.money - price;
+    const newOxygen = player.oxygen + oxygenIncrease;
 
     await supabase
       .from('players')
       .update({
         money: newMoney,
         house_level: newHouseLevel,
+        oxygen: newOxygen,
         inventory: updatedInventory as any
       })
       .eq('id', player.id);
@@ -275,6 +290,40 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const endGame = async () => {
+    if (!gameSession || !isAdmin) return;
+
+    await supabase
+      .from('game_sessions')
+      .update({ status: 'finished' })
+      .eq('id', gameSession.id);
+
+    toast({
+      title: "Игра завершена!",
+      description: "Все результаты сохранены",
+    });
+  };
+
+  const claimMissionReward = async (missionId: string, reward: number) => {
+    if (!player) return;
+
+    const updatedMissions = [...player.completed_missions, missionId];
+    const newMoney = player.money + reward;
+
+    await supabase
+      .from('players')
+      .update({
+        completed_missions: updatedMissions as any,
+        money: newMoney
+      })
+      .eq('id', player.id);
+
+    toast({
+      title: "Миссия выполнена!",
+      description: `Получено: $${reward.toLocaleString()}`,
+    });
+  };
+
   const startGame = async (duration: number) => {
     if (!gameSession || !isAdmin) return;
 
@@ -293,6 +342,36 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  // Система прибыли
+  useEffect(() => {
+    if (!player || !gameSession || gameSession.status !== 'active') return;
+
+    const calculateProfit = () => {
+      let totalProfit = 0;
+      player.inventory.forEach(item => {
+        const levelMultiplier = Math.pow(3, item.level - 1);
+        totalProfit += item.profitPerSecond * levelMultiplier * item.level;
+      });
+      return totalProfit;
+    };
+
+    const getInterval = () => {
+      const maxLevel = Math.max(...player.inventory.map(i => i.level), 1);
+      if (maxLevel === 1) return 2000;
+      if (maxLevel === 2) return 1500;
+      return 1000;
+    };
+
+    const interval = setInterval(() => {
+      const profit = calculateProfit();
+      if (profit > 0) {
+        updateMoney(profit);
+      }
+    }, getInterval());
+
+    return () => clearInterval(interval);
+  }, [player?.inventory, gameSession?.status]);
+
   return (
     <GameContext.Provider
       value={{
@@ -306,6 +385,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         selectCard,
         purchaseItem,
         startGame,
+        endGame,
+        claimMissionReward,
         setPlayer,
         setIsAdmin,
         setGameSession,

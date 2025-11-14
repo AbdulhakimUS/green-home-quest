@@ -9,7 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { PurchaseHistory } from "./PurchaseHistory";
 
 export const AdminPanel = () => {
-  const { allPlayers, gameSession, startGame, timeRemaining } = useGame();
+  const { allPlayers, gameSession, startGame, endGame, timeRemaining } = useGame();
   const [selectedPlayer, setSelectedPlayer] = useState<any | null>(null);
   const [timerMinutes, setTimerMinutes] = useState("30");
   const [showHistory, setShowHistory] = useState(false);
@@ -83,6 +83,16 @@ export const AdminPanel = () => {
                     Начать игру
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {gameSession?.status === 'active' && (
+            <Card className="mb-6 border-destructive">
+              <CardContent className="pt-6">
+                <Button onClick={endGame} variant="destructive" size="lg" className="w-full">
+                  Завершить игру
+                </Button>
               </CardContent>
             </Card>
           )}

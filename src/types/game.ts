@@ -8,6 +8,8 @@ export interface Player {
   selected_card: CardType | null;
   inventory: ShopItem[];
   session_id?: string;
+  oxygen: number;
+  completed_missions: string[];
 }
 
 export interface ShopItem {
@@ -21,6 +23,24 @@ export interface ShopItem {
   ecology: number;
   description: string;
   image?: string;
+  profitPerSecond: number;
+}
+
+export interface Mission {
+  id: string;
+  title: string;
+  description: string;
+  reward: number;
+  condition: (player: Player) => boolean;
+}
+
+export interface GameEvent {
+  id: string;
+  title: string;
+  description: string;
+  effect: string;
+  duration: number;
+  startedAt: number;
 }
 
 export interface GameSession {
