@@ -1,5 +1,8 @@
 import { Building2, Zap, Droplets, Trees, Wind, Battery, Squirrel } from "lucide-react";
 import { useGame } from "@/contexts/GameContext";
+import { Leaderboard } from "./Leaderboard";
+import { MissionsPanel } from "./MissionsPanel";
+import { EventsPanel } from "./EventsPanel";
 
 export const HomeTab = () => {
   const { player } = useGame();
@@ -32,7 +35,11 @@ export const HomeTab = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <>
+      <EventsPanel />
+      <Leaderboard />
+      <MissionsPanel />
+      <div className="space-y-6 animate-fade-in">
       <div className="text-center space-y-2">
         <Building2 className="w-16 h-16 mx-auto text-primary" />
         <h2 className="text-2xl font-bold">Ваш Эко Дом</h2>
@@ -222,8 +229,8 @@ export const HomeTab = () => {
         )}
       </div>
 
-      {/* Статистика */}
-      <div className="grid grid-cols-3 gap-2">
+      {/* Статистика с кислородом */}
+      <div className="grid grid-cols-4 gap-2">
         <div className="bg-card border border-border rounded-lg p-3 text-center">
           <Zap className="w-6 h-6 mx-auto mb-1 text-yellow-500" />
           <div className="text-xs text-muted-foreground">Энергия</div>
@@ -239,7 +246,13 @@ export const HomeTab = () => {
           <div className="text-xs text-muted-foreground">Зелень</div>
           <div className="text-sm font-bold">{greeneryItems.length}</div>
         </div>
+        <div className="bg-card border border-border rounded-lg p-3 text-center">
+          <Wind className="w-6 h-6 mx-auto mb-1 text-info" />
+          <div className="text-xs text-muted-foreground">O₂</div>
+          <div className="text-sm font-bold">{player?.oxygen || 0}</div>
+        </div>
       </div>
     </div>
+    </>
   );
 };

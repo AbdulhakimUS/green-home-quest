@@ -107,13 +107,16 @@ export const ShopTab = () => {
                       <div className="text-sm text-muted-foreground">
                         Экология: 🌿 {item.ecology}/10
                       </div>
+                      <div className="text-sm text-primary font-semibold">
+                        💰 {item.profitPerSecond}$/сек
+                      </div>
                     </div>
                     <Button
                       onClick={(e) => {
                         e.stopPropagation();
                         handlePurchase(item);
                       }}
-                      disabled={!canAfford}
+                      disabled={!canAfford || player.money === 0}
                       className="min-w-[100px]"
                     >
                       {level > 0 ? "Улучшить" : "Купить"} {cost}$

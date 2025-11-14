@@ -78,7 +78,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       .insert({
         session_id: session.id,
         nickname,
-        money: 10000,
+        money: 20000,
         house_level: 1,
         selected_card: null,
         inventory: []

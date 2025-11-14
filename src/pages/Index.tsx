@@ -7,6 +7,7 @@ import { CardsTab } from "@/components/CardsTab";
 import { ShopTab } from "@/components/ShopTab";
 import { AdminPanel } from "@/components/AdminPanel";
 import { Footer } from "@/components/Footer";
+import { WelcomeModal } from "@/components/WelcomeModal";
 
 const GameContent = () => {
   const { player, isAdmin, setPlayer, setIsAdmin, setGameSession } = useGame();
@@ -21,7 +22,12 @@ const GameContent = () => {
   };
 
   if (!player && !isAdmin) {
-    return <LoginScreen onLogin={handleLogin} />;
+    return (
+      <>
+        <WelcomeModal />
+        <LoginScreen onLogin={handleLogin} />
+      </>
+    );
   }
 
   if (isAdmin) {
@@ -33,7 +39,7 @@ const GameContent = () => {
       <GameNavbar activeTab={activeTab} onTabChange={setActiveTab} />
       
       <main className="flex-1 pt-24 pb-20 px-4 lg:pl-72 lg:pt-24 lg:pb-8">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto space-y-6">
           {activeTab === "home" && <HomeTab />}
           {activeTab === "cards" && <CardsTab />}
           {activeTab === "shop" && <ShopTab />}
