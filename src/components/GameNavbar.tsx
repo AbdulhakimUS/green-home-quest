@@ -1,4 +1,4 @@
-import { Home, ShoppingCart, CreditCard, Coins, TrendingUp, Clock, History } from "lucide-react";
+import { Home, ShoppingCart, CreditCard, Coins, TrendingUp, Clock, History, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGame } from "@/contexts/GameContext";
 import { Progress } from "@/components/ui/progress";
@@ -49,6 +49,14 @@ export const GameNavbar = ({ activeTab, onTabChange }: GameNavbarProps) => {
           >
             <CreditCard className="w-6 h-6 lg:mr-2" />
             <span className="text-xs mt-1 lg:text-sm lg:mt-0">Карты</span>
+          </Button>
+          <Button
+            variant={activeTab === "missions" ? "default" : "ghost"}
+            onClick={() => onTabChange("missions")}
+            className="flex-col h-auto py-2 lg:w-full lg:flex-row lg:justify-start"
+          >
+            <Target className="w-6 h-6 lg:mr-2" />
+            <span className="text-xs mt-1 lg:text-sm lg:mt-0">Миссии</span>
           </Button>
           <Button
             variant="ghost"

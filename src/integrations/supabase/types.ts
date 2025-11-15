@@ -16,6 +16,8 @@ export type Database = {
     Tables: {
       game_sessions: {
         Row: {
+          active_events: Json | null
+          admin_reconnect_allowed: boolean | null
           code: string
           created_at: string | null
           id: string
@@ -25,6 +27,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          active_events?: Json | null
+          admin_reconnect_allowed?: boolean | null
           code: string
           created_at?: string | null
           id?: string
@@ -34,6 +38,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          active_events?: Json | null
+          admin_reconnect_allowed?: boolean | null
           code?: string
           created_at?: string | null
           id?: string
@@ -46,34 +52,40 @@ export type Database = {
       }
       players: {
         Row: {
+          completed_missions: Json | null
           created_at: string | null
           house_level: number | null
           id: string
           inventory: Json | null
           money: number | null
           nickname: string
+          oxygen: number | null
           selected_card: string | null
           session_id: string
           updated_at: string | null
         }
         Insert: {
+          completed_missions?: Json | null
           created_at?: string | null
           house_level?: number | null
           id?: string
           inventory?: Json | null
           money?: number | null
           nickname: string
+          oxygen?: number | null
           selected_card?: string | null
           session_id: string
           updated_at?: string | null
         }
         Update: {
+          completed_missions?: Json | null
           created_at?: string | null
           house_level?: number | null
           id?: string
           inventory?: Json | null
           money?: number | null
           nickname?: string
+          oxygen?: number | null
           selected_card?: string | null
           session_id?: string
           updated_at?: string | null

@@ -7,7 +7,7 @@ export const WelcomeModal = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setOpen(false);
-    }, 5000);
+    }, 10000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -31,7 +31,7 @@ export const WelcomeModal = () => {
                 rel="noopener noreferrer"
                 className="block text-primary hover:underline"
               >
-                https://t.me/amonovvv_a
+                TG: @amonovvv_a
               </a>
               <a 
                 href="https://t.me/abdusatorovv_a" 
@@ -39,7 +39,7 @@ export const WelcomeModal = () => {
                 rel="noopener noreferrer"
                 className="block text-primary hover:underline"
               >
-                https://t.me/abdusatorovv_a
+                TG: @abdusatorovv_a
               </a>
             </div>
             
@@ -50,7 +50,7 @@ export const WelcomeModal = () => {
               rel="noopener noreferrer"
               className="block text-primary hover:underline"
             >
-              https://t.me/amonovvv_a
+              TG: @amonovvv_a
             </a>
           </div>
         </div>

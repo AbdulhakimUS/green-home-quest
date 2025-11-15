@@ -12,6 +12,9 @@ interface LoginScreenProps {
 
 export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminAuthenticated, setAdminAuthenticated] = useState(false);
+  const [adminChoice, setAdminChoice] = useState<'create' | 'join' | null>(null);
+  const [joinCode, setJoinCode] = useState("");
   const [gameCode, setGameCode] = useState("");
   const [nickname, setNickname] = useState("");
   const [adminLogin, setAdminLogin] = useState("");
@@ -116,6 +119,14 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       return;
     }
 
+    setAdminAuthenticated(true);
+    toast({
+      title: "Успешно!",
+      description: "Добро пожаловать, администратор",
+    });
+  };
+
+  const handleCreateRoom = async () => {
     setLoading(true);
 
     console.log('🎲 Generating game code...');
@@ -149,6 +160,43 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     toast({
       title: "Игра создана!",
       description: `Код игры: ${newGameCode}`,
+    });
+    onLogin(null, session, true);
+  };
+
+  const handleJoinRoom = async () => {
+    if (!joinCode || !/^\d{6}$/.test(joinCode)) {
+      toast({
+        title: "Ошибка",
+        description: "Введите корректный 6-значный код",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    const { data: session, error: sessionError } = await supabase
+      .from('game_sessions')
+      .select('*')
+      .eq('code', joinCode)
+      .single();
+
+    if (sessionError || !session) {
+      toast({
+        title: "Ошибка",
+        description: "Игра с таким кодом не найдена",
+        variant: "destructive"
+      });
+      setLoading(false);
+      return;
+    }
+
+    console.log('✅ Joined session:', session);
+    setLoading(false);
+    toast({
+      title: "Успешно!",
+      description: `Присоединились к игре ${joinCode}`,
     });
     onLogin(null, session, true);
   };
@@ -201,11 +249,11 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
               </Button>
             </CardContent>
           </Card>
-        ) : (
+        ) : !adminAuthenticated ? (
           <Card className="border-2 shadow-lg border-primary">
             <CardHeader>
-              <CardTitle>Админ панель</CardTitle>
-              <CardDescription>Войдите для создания новой игры</CardDescription>
+              <CardTitle>Вход администратора</CardTitle>
+              <CardDescription>Войдите для управления игрой</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Input
@@ -225,7 +273,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                 size="lg"
                 disabled={loading}
               >
-                {loading ? "Создание..." : "Создать игру"}
+                Войти
               </Button>
               <Button
                 variant="ghost"
@@ -234,6 +282,80 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
               >
                 Назад
               </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="border-2 shadow-lg border-primary">
+            <CardHeader>
+              <CardTitle>Управление игрой</CardTitle>
+              <CardDescription>Выберите действие</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {!adminChoice ? (
+                <>
+                  <Button 
+                    onClick={() => setAdminChoice('create')} 
+                    className="w-full" 
+                    size="lg"
+                  >
+                    Создать новую комнату
+                  </Button>
+                  <Button 
+                    onClick={() => setAdminChoice('join')} 
+                    className="w-full" 
+                    size="lg"
+                    variant="outline"
+                  >
+                    Присоединиться к существующей
+                  </Button>
+                </>
+              ) : adminChoice === 'create' ? (
+                <>
+                  <p className="text-sm text-muted-foreground text-center">
+                    Создать новую игровую комнату
+                  </p>
+                  <Button 
+                    onClick={handleCreateRoom} 
+                    className="w-full" 
+                    size="lg"
+                    disabled={loading}
+                  >
+                    {loading ? "Создание..." : "Создать комнату"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setAdminChoice(null)}
+                    className="w-full"
+                  >
+                    Назад
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Input
+                    placeholder="Код комнаты (6 цифр)"
+                    value={joinCode}
+                    onChange={(e) => setJoinCode(e.target.value)}
+                    className="text-center text-lg font-semibold"
+                    maxLength={6}
+                  />
+                  <Button 
+                    onClick={handleJoinRoom} 
+                    className="w-full" 
+                    size="lg"
+                    disabled={loading}
+                  >
+                    {loading ? "Подключение..." : "Присоединиться"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setAdminChoice(null)}
+                    className="w-full"
+                  >
+                    Назад
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
         )}

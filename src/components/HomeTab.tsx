@@ -37,8 +37,6 @@ export const HomeTab = () => {
   return (
     <>
       <EventsPanel />
-      <Leaderboard />
-      <MissionsPanel />
       <div className="space-y-6 animate-fade-in">
       <div className="text-center space-y-2">
         <Building2 className="w-16 h-16 mx-auto text-primary" />
@@ -60,6 +58,24 @@ export const HomeTab = () => {
             }}
           >
             <Building2 className="w-16 h-16 md:w-20 md:h-20 text-primary" />
+            
+            {/* HUD дома с показателями */}
+            <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-card/90 backdrop-blur-sm px-3 py-1 rounded-full border-2 border-primary">
+              <div className="flex items-center gap-1">
+                <Zap className="w-4 h-4 text-yellow-500" />
+                <span className="text-xs font-semibold">{energyItems.length}</span>
+              </div>
+              <div className="w-px h-4 bg-border" />
+              <div className="flex items-center gap-1">
+                <Wind className="w-4 h-4 text-info" />
+                <span className="text-xs font-semibold">{player?.oxygen || 0}</span>
+              </div>
+              <div className="w-px h-4 bg-border" />
+              <div className="flex items-center gap-1">
+                <Droplets className="w-4 h-4 text-blue-500" />
+                <span className="text-xs font-semibold">{waterItems.length}</span>
+              </div>
+            </div>
             
             {/* Окна с подсветкой */}
             <div className="absolute top-4 left-4 w-4 h-4 bg-background rounded-sm border border-border">
