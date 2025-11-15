@@ -9,9 +9,10 @@ import { PurchaseHistory } from "./PurchaseHistory";
 interface GameNavbarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  onExitClick?: () => void;
 }
 
-export const GameNavbar = ({ activeTab, onTabChange }: GameNavbarProps) => {
+export const GameNavbar = ({ activeTab, onTabChange, onExitClick }: GameNavbarProps) => {
   const { player, timeRemaining, gameSession, currentIncome } = useGame();
   const [showHistory, setShowHistory] = useState(false);
   const [hasUnclaimedMission, setHasUnclaimedMission] = useState(false);
