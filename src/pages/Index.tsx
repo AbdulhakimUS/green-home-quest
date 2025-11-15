@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GameProvider, useGame } from "@/contexts/GameContext";
 import { LoginScreen } from "@/components/LoginScreen";
 import { GameNavbar } from "@/components/GameNavbar";
@@ -11,7 +11,7 @@ import { WelcomeModal } from "@/components/WelcomeModal";
 import { MissionsPanel } from "@/components/MissionsPanel";
 
 const GameContent = () => {
-  const { player, isAdmin, setPlayer, setIsAdmin, setGameSession } = useGame();
+  const { player, isAdmin, setPlayer, setIsAdmin, setGameSession, removePlayer } = useGame();
   const [activeTab, setActiveTab] = useState("home");
 
   const handleLogin = (playerData: any, session: any, admin: boolean) => {
@@ -21,6 +21,18 @@ const GameContent = () => {
       setPlayer(playerData);
     }
   };
+
+  // Удаление игрока при закрытии окна/вкладки
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (player && !isAdmin) {
+        removePlayer();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [player, isAdmin, removePlayer]);
 
   if (!player && !isAdmin) {
     return (
@@ -44,15 +56,7 @@ const GameContent = () => {
           {activeTab === "home" && <HomeTab />}
           {activeTab === "cards" && <CardsTab />}
           {activeTab === "shop" && <ShopTab />}
-          {activeTab === "missions" && (
-            <>
-              <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold">Миссии</h2>
-                <p className="text-muted-foreground">Выполняйте задания и получайте награды</p>
-              </div>
-              <MissionsPanel />
-            </>
-          )}
+          {activeTab === "missions" && <MissionsPanel />}
         </div>
       </main>
       

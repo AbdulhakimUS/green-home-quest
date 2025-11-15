@@ -7,7 +7,7 @@ export const WelcomeModal = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setOpen(false);
-    }, 10000);
+    }, 7000);
 
     return () => clearTimeout(timer);
   }, []);
