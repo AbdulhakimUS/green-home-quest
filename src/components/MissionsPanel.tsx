@@ -9,7 +9,7 @@ const missions: Mission[] = [
     id: "house_5",
     title: "Начальное развитие",
     description: "Построй дом до уровня 5",
-    reward: 10000,
+    reward: 5000,
     condition: (player) => player.house_level >= 5
   },
   {
@@ -23,7 +23,7 @@ const missions: Mission[] = [
     id: "all_categories",
     title: "Разносторонний",
     description: "Купи предметы из всех 3 категорий",
-    reward: 10000,
+    reward: 5000,
     condition: (player) => {
       const categories = new Set(player.inventory.map(i => i.category));
       return categories.size === 3;
@@ -40,8 +40,43 @@ const missions: Mission[] = [
     id: "house_15",
     title: "Мастер строительства",
     description: "Построй дом до уровня 15",
-    reward: 10000,
+    reward: 15000,
     condition: (player) => player.house_level >= 15
+  },
+  {
+    id: "items_10",
+    title: "Коллекционер",
+    description: "Собери 10 предметов",
+    reward: 10000,
+    condition: (player) => player.inventory.length >= 10
+  },
+  {
+    id: "oxygen_50",
+    title: "Дыши полной грудью",
+    description: "Достигни 50 единиц кислорода",
+    reward: 8000,
+    condition: (player) => player.oxygen >= 50
+  },
+  {
+    id: "money_200k",
+    title: "Богач",
+    description: "Собери 200,000$",
+    reward: 20000,
+    condition: (player) => player.money >= 200000
+  },
+  {
+    id: "house_20",
+    title: "Эксперт строительства",
+    description: "Построй дом до уровня 20",
+    reward: 20000,
+    condition: (player) => player.house_level >= 20
+  },
+  {
+    id: "max_level",
+    title: "Максимальное развитие",
+    description: "Достигни максимального уровня дома (25)",
+    reward: 50000,
+    condition: (player) => player.house_level >= 25
   }
 ];
 

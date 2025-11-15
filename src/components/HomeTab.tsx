@@ -1,5 +1,6 @@
 import { Building2, Zap, Droplets, Trees, Wind, Battery, Squirrel } from "lucide-react";
 import { useGame } from "@/contexts/GameContext";
+import { Progress } from "@/components/ui/progress";
 import { Leaderboard } from "./Leaderboard";
 import { MissionsPanel } from "./MissionsPanel";
 import { EventsPanel } from "./EventsPanel";
@@ -245,27 +246,39 @@ export const HomeTab = () => {
         )}
       </div>
 
-      {/* Статистика с кислородом */}
-      <div className="grid grid-cols-4 gap-2">
-        <div className="bg-card border border-border rounded-lg p-3 text-center">
-          <Zap className="w-6 h-6 mx-auto mb-1 text-yellow-500" />
-          <div className="text-xs text-muted-foreground">Энергия</div>
-          <div className="text-sm font-bold">{energyItems.length}</div>
+      {/* Показатели с прогресс-барами */}
+      <div className="space-y-4">
+        <div className="bg-card border border-border rounded-lg p-4">
+          <div className="flex items-center gap-3 mb-2">
+            <Zap className="w-5 h-5 text-yellow-500" />
+            <div className="flex-1">
+              <div className="text-sm font-semibold">Энергия</div>
+              <Progress value={Math.min((energyItems.length / 6) * 100, 100)} className="h-2 mt-1" />
+            </div>
+            <div className="text-sm font-bold">{energyItems.length}/6</div>
+          </div>
         </div>
-        <div className="bg-card border border-border rounded-lg p-3 text-center">
-          <Droplets className="w-6 h-6 mx-auto mb-1 text-blue-500" />
-          <div className="text-xs text-muted-foreground">Вода</div>
-          <div className="text-sm font-bold">{waterItems.length}</div>
+
+        <div className="bg-card border border-border rounded-lg p-4">
+          <div className="flex items-center gap-3 mb-2">
+            <Wind className="w-5 h-5 text-info" />
+            <div className="flex-1">
+              <div className="text-sm font-semibold">Кислород</div>
+              <Progress value={Math.min((player?.oxygen || 0) / 100 * 100, 100)} className="h-2 mt-1" />
+            </div>
+            <div className="text-sm font-bold">{player?.oxygen || 0}</div>
+          </div>
         </div>
-        <div className="bg-card border border-border rounded-lg p-3 text-center">
-          <Trees className="w-6 h-6 mx-auto mb-1 text-success" />
-          <div className="text-xs text-muted-foreground">Зелень</div>
-          <div className="text-sm font-bold">{greeneryItems.length}</div>
-        </div>
-        <div className="bg-card border border-border rounded-lg p-3 text-center">
-          <Wind className="w-6 h-6 mx-auto mb-1 text-info" />
-          <div className="text-xs text-muted-foreground">O₂</div>
-          <div className="text-sm font-bold">{player?.oxygen || 0}</div>
+
+        <div className="bg-card border border-border rounded-lg p-4">
+          <div className="flex items-center gap-3 mb-2">
+            <Droplets className="w-5 h-5 text-blue-500" />
+            <div className="flex-1">
+              <div className="text-sm font-semibold">Вода</div>
+              <Progress value={Math.min((waterItems.length / 6) * 100, 100)} className="h-2 mt-1" />
+            </div>
+            <div className="text-sm font-bold">{waterItems.length}/6</div>
+          </div>
         </div>
       </div>
     </div>

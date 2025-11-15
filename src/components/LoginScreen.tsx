@@ -81,7 +81,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       .insert({
         session_id: session.id,
         nickname,
-        money: 20000,
+        money: 10000,
         house_level: 1,
         selected_card: null,
         inventory: []
@@ -100,13 +100,18 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       return;
     }
 
-    console.log('✅ Player created:', newPlayer);
-    setLoading(false);
-    toast({
-      title: "Успешно!",
-      description: `Добро пожаловать, ${nickname}!`,
-    });
-    onLogin({ ...newPlayer, inventory: [] }, session, false);
+    if (newPlayer) {
+      console.log('✅ Player created successfully');
+      // Сохраняем в localStorage для восстановления
+      localStorage.setItem('eco_player_id', newPlayer.id);
+      localStorage.setItem('eco_session_id', session.id);
+      
+      toast({
+        title: "Успешно!",
+        description: `Добро пожаловать, ${nickname}!`,
+      });
+      onLogin(newPlayer, session, false);
+    }
   };
 
   const handleAdminLogin = async () => {

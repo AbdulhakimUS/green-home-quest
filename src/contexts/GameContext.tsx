@@ -32,12 +32,14 @@ interface GameContextType {
   allPlayers: Player[];
   gameSession: GameSession | null;
   timeRemaining: number | null;
+  currentIncome: number;
   updateMoney: (amount: number) => void;
   selectCard: (card: CardType) => void;
   purchaseItem: (item: ShopItem) => Promise<void>;
   startGame: (duration: number) => Promise<void>;
   endGame: () => Promise<void>;
   claimMissionReward: (missionId: string, reward: number) => Promise<void>;
+  removePlayer: () => Promise<void>;
   setPlayer: (player: Player | null) => void;
   setIsAdmin: (isAdmin: boolean) => void;
   setGameSession: (session: GameSession | null) => void;
@@ -52,6 +54,49 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [currentIncome, setCurrentIncome] = useState(0);
+
+  // Восстановление сессии из localStorage
+  useEffect(() => {
+    const savedPlayerId = localStorage.getItem('eco_player_id');
+    const savedSessionId = localStorage.getItem('eco_session_id');
+    
+    if (savedPlayerId && savedSessionId && !player) {
+      const restoreSession = async () => {
+        const { data: sessionData } = await supabase
+          .from('game_sessions')
+          .select('*')
+          .eq('id', savedSessionId)
+          .single();
+        
+        if (sessionData) {
+          setGameSession({
+            ...sessionData,
+            status: sessionData.status as 'waiting' | 'active' | 'finished',
+            active_events: (sessionData.active_events as any) || []
+          });
+          setGameCode(sessionData.code);
+          
+          const { data: playerData } = await supabase
+            .from('players')
+            .select('*')
+            .eq('id', savedPlayerId)
+            .single();
+          
+          if (playerData) {
+            setPlayer({
+              ...playerData,
+              selected_card: (playerData.selected_card as CardType) || null,
+              inventory: (playerData.inventory as any as ShopItem[]) || [],
+              completed_missions: (playerData.completed_missions as any as string[]) || []
+            });
+          }
+        }
+      };
+      
+      restoreSession();
+    }
+  }, []);
 
   // Подписка на изменения игроков
   useEffect(() => {
@@ -216,6 +261,16 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    // Проверка уровня дома для дорогих предметов
+    if (item.basePrice >= 1500 && player.house_level < 3) {
+      toast({
+        title: "Требуется уровень дома",
+        description: "Для покупки этого предмета нужен уровень дома 3 или выше",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const existingItem = player.inventory.find(i => i.id === item.id);
     
     let updatedInventory: ShopItem[];
@@ -324,6 +379,20 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const removePlayer = async () => {
+    if (!player) return;
+
+    await supabase
+      .from('players')
+      .delete()
+      .eq('id', player.id);
+
+    localStorage.removeItem('eco_player_id');
+    localStorage.removeItem('eco_session_id');
+    
+    setPlayer(null);
+  };
+
   const startGame = async (duration: number) => {
     if (!gameSession || !isAdmin) return;
 
@@ -350,14 +419,17 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       let totalProfit = 0;
       player.inventory.forEach(item => {
         const levelMultiplier = Math.pow(1.5, item.level - 1);
-        totalProfit += item.profitPerSecond * levelMultiplier;
+        totalProfit += item.profitPerSecond * levelMultiplier * item.level;
       });
       return totalProfit;
     };
 
     const getInterval = () => {
-      if (!player.inventory || player.inventory.length === 0) return 2000;
-      const maxLevel = Math.max(...player.inventory.map(i => i.level));
+      const totalIncome = calculateProfit();
+      // Если доход выше 100$/сек, начисляем каждые 0.5 сек
+      if (totalIncome > 100) return 500;
+      
+      const maxLevel = Math.max(...player.inventory.map(i => i.level), 1);
       if (maxLevel === 1) return 2000;
       if (maxLevel === 2) return 1500;
       return 1000;
@@ -380,6 +452,18 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     return () => clearInterval(interval);
   }, [player?.id, player?.inventory, player?.money, gameSession?.status]);
 
+  // Вычисление текущего дохода
+  useEffect(() => {
+    if (!player) return;
+    
+    let totalProfit = 0;
+    player.inventory.forEach(item => {
+      const levelMultiplier = Math.pow(1.5, item.level - 1);
+      totalProfit += item.profitPerSecond * levelMultiplier * item.level;
+    });
+    setCurrentIncome(totalProfit);
+  }, [player?.inventory]);
+
   return (
     <GameContext.Provider
       value={{
@@ -389,12 +473,14 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         allPlayers,
         gameSession,
         timeRemaining,
+        currentIncome,
         updateMoney,
         selectCard,
         purchaseItem,
         startGame,
         endGame,
         claimMissionReward,
+        removePlayer,
         setPlayer,
         setIsAdmin,
         setGameSession,
