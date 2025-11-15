@@ -1,4 +1,4 @@
-import { Users, TrendingUp, Coins, Play, Clock, History } from "lucide-react";
+import { Users, TrendingUp, Coins, Play, Clock, History, Trophy } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGame } from "@/contexts/GameContext";
 import { useState } from "react";
@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { PurchaseHistory } from "./PurchaseHistory";
+import { Leaderboard } from "./Leaderboard";
 
 export const AdminPanel = () => {
   const { allPlayers, gameSession, startGame, endGame, timeRemaining } = useGame();
@@ -138,6 +139,8 @@ export const AdminPanel = () => {
               )}
             </CardContent>
           </Card>
+
+          <Leaderboard />
         </div>
       </div>
 

@@ -60,7 +60,14 @@ export const MissionsPanel = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {missions.map((mission) => {
+          {missions
+            .sort((a, b) => {
+              const aCompleted = player.completed_missions.includes(a.id);
+              const bCompleted = player.completed_missions.includes(b.id);
+              if (aCompleted === bCompleted) return 0;
+              return aCompleted ? 1 : -1;
+            })
+            .map((mission) => {
             const isCompleted = player.completed_missions.includes(mission.id);
             const canComplete = !isCompleted && mission.condition(player);
 

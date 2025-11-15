@@ -349,14 +349,15 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     const calculateProfit = () => {
       let totalProfit = 0;
       player.inventory.forEach(item => {
-        const levelMultiplier = Math.pow(3, item.level - 1);
-        totalProfit += item.profitPerSecond * levelMultiplier * item.level;
+        const levelMultiplier = Math.pow(1.5, item.level - 1);
+        totalProfit += item.profitPerSecond * levelMultiplier;
       });
       return totalProfit;
     };
 
     const getInterval = () => {
-      const maxLevel = Math.max(...player.inventory.map(i => i.level), 1);
+      if (!player.inventory || player.inventory.length === 0) return 2000;
+      const maxLevel = Math.max(...player.inventory.map(i => i.level));
       if (maxLevel === 1) return 2000;
       if (maxLevel === 2) return 1500;
       return 1000;
@@ -365,12 +366,19 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     const interval = setInterval(() => {
       const profit = calculateProfit();
       if (profit > 0) {
-        updateMoney(profit);
+        const newMoney = player.money + profit;
+        supabase
+          .from('players')
+          .update({ money: newMoney })
+          .eq('id', player.id)
+          .then(() => {
+            setPlayer({ ...player, money: newMoney });
+          });
       }
     }, getInterval());
 
     return () => clearInterval(interval);
-  }, [player?.inventory, gameSession?.status]);
+  }, [player?.id, player?.inventory, player?.money, gameSession?.status]);
 
   return (
     <GameContext.Provider
