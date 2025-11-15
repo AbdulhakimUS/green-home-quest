@@ -1,4 +1,4 @@
-import { Users, TrendingUp, Coins, Play, Clock, History, Trophy } from "lucide-react";
+import { Users, TrendingUp, Coins, Play, Clock, History, Trophy, LogOut } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGame } from "@/contexts/GameContext";
 import { useState } from "react";
@@ -10,7 +10,7 @@ import { PurchaseHistory } from "./PurchaseHistory";
 import { Leaderboard } from "./Leaderboard";
 
 export const AdminPanel = () => {
-  const { allPlayers, gameSession, startGame, endGame, timeRemaining } = useGame();
+  const { allPlayers, gameSession, startGame, endGame, timeRemaining, logoutAdmin } = useGame();
   const [selectedPlayer, setSelectedPlayer] = useState<any | null>(null);
   const [timerMinutes, setTimerMinutes] = useState("30");
   const [showHistory, setShowHistory] = useState(false);
@@ -39,7 +39,18 @@ export const AdminPanel = () => {
       <div className="min-h-screen bg-background p-4 space-y-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center space-y-2 mb-6">
-            <h1 className="text-3xl font-bold">Админ Панель</h1>
+            <div className="flex items-center justify-center gap-4">
+              <h1 className="text-3xl font-bold">Админ Панель</h1>
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={logoutAdmin}
+                className="gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Выйти
+              </Button>
+            </div>
             <p className="text-xl text-muted-foreground">
               Код игры: <span className="font-mono font-bold text-primary text-2xl">{gameSession?.code}</span>
             </p>

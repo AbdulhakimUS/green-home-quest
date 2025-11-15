@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export const WelcomeModal = () => {
   const [open, setOpen] = useState(true);
@@ -19,8 +19,13 @@ export const WelcomeModal = () => {
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
+        <DialogTitle className="text-2xl font-bold text-primary text-center">
+          Добро пожаловать в Eco Home!
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          Информация о создателях сайта и контакты для сотрудничества
+        </DialogDescription>
         <div className="space-y-4 text-center py-4">
-          <h2 className="text-2xl font-bold text-primary">Добро пожаловать в Eco Home!</h2>
           
           <div className="space-y-3 text-sm">
             <p className="font-semibold">Создали сайт:</p>

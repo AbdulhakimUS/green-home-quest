@@ -161,6 +161,10 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     }
 
     console.log('✅ Session created:', session);
+    // Сохраняем для админа
+    localStorage.setItem('eco_session_id', session.id);
+    localStorage.setItem('eco_is_admin', 'true');
+    
     setLoading(false);
     toast({
       title: "Игра создана!",
@@ -198,6 +202,10 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     }
 
     console.log('✅ Joined session:', session);
+    // Сохраняем для админа
+    localStorage.setItem('eco_session_id', session.id);
+    localStorage.setItem('eco_is_admin', 'true');
+    
     setLoading(false);
     toast({
       title: "Успешно!",

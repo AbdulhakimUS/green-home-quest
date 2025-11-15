@@ -40,6 +40,7 @@ interface GameContextType {
   endGame: () => Promise<void>;
   claimMissionReward: (missionId: string, reward: number) => Promise<void>;
   removePlayer: () => Promise<void>;
+  logoutAdmin: () => void;
   setPlayer: (player: Player | null) => void;
   setIsAdmin: (isAdmin: boolean) => void;
   setGameSession: (session: GameSession | null) => void;
@@ -60,8 +61,9 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const savedPlayerId = localStorage.getItem('eco_player_id');
     const savedSessionId = localStorage.getItem('eco_session_id');
+    const savedIsAdmin = localStorage.getItem('eco_is_admin') === 'true';
     
-    if (savedPlayerId && savedSessionId && !player) {
+    if (savedSessionId) {
       const restoreSession = async () => {
         const { data: sessionData } = await supabase
           .from('game_sessions')
@@ -77,19 +79,23 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           });
           setGameCode(sessionData.code);
           
-          const { data: playerData } = await supabase
-            .from('players')
-            .select('*')
-            .eq('id', savedPlayerId)
-            .single();
-          
-          if (playerData) {
-            setPlayer({
-              ...playerData,
-              selected_card: (playerData.selected_card as CardType) || null,
-              inventory: (playerData.inventory as any as ShopItem[]) || [],
-              completed_missions: (playerData.completed_missions as any as string[]) || []
-            });
+          if (savedIsAdmin) {
+            setIsAdmin(true);
+          } else if (savedPlayerId && !player) {
+            const { data: playerData } = await supabase
+              .from('players')
+              .select('*')
+              .eq('id', savedPlayerId)
+              .single();
+            
+            if (playerData) {
+              setPlayer({
+                ...playerData,
+                selected_card: (playerData.selected_card as CardType) || null,
+                inventory: (playerData.inventory as any as ShopItem[]) || [],
+                completed_missions: (playerData.completed_missions as any as string[]) || []
+              });
+            }
           }
         }
       };
@@ -236,6 +242,11 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     if (!player) return;
     
     const newMoney = player.money + amount;
+    
+    // Обновляем локальное состояние немедленно
+    setPlayer({ ...player, money: newMoney });
+    
+    // Обновляем в базе данных
     await supabase
       .from('players')
       .update({ money: newMoney })
@@ -393,6 +404,14 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     setPlayer(null);
   };
 
+  const logoutAdmin = () => {
+    localStorage.removeItem('eco_session_id');
+    localStorage.removeItem('eco_is_admin');
+    setIsAdmin(false);
+    setGameSession(null);
+    setGameCode(null);
+  };
+
   const startGame = async (duration: number) => {
     if (!gameSession || !isAdmin) return;
 
@@ -438,19 +457,12 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     const interval = setInterval(() => {
       const profit = calculateProfit();
       if (profit > 0) {
-        const newMoney = player.money + profit;
-        supabase
-          .from('players')
-          .update({ money: newMoney })
-          .eq('id', player.id)
-          .then(() => {
-            setPlayer({ ...player, money: newMoney });
-          });
+        updateMoney(profit);
       }
     }, getInterval());
 
     return () => clearInterval(interval);
-  }, [player?.id, player?.inventory, player?.money, gameSession?.status]);
+  }, [player?.id, player?.inventory, gameSession?.status]);
 
   // Вычисление текущего дохода
   useEffect(() => {
@@ -481,6 +493,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         endGame,
         claimMissionReward,
         removePlayer,
+        logoutAdmin,
         setPlayer,
         setIsAdmin,
         setGameSession,

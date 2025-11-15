@@ -102,13 +102,13 @@ export const ShopTab = () => {
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <div className="text-sm text-muted-foreground">
-                        Эффективность: ⭐ {item.efficiency}/10
+                        Эффективность: ⭐ {Math.min(10, Math.round(item.efficiency * (1 + level * 0.2)))}/10
                       </div>
                       <div className="text-sm text-muted-foreground">
                         Экология: 🌿 {item.ecology}/10
                       </div>
                       <div className="text-sm text-primary font-semibold">
-                        💰 {item.profitPerSecond}$/сек
+                        💰 {(item.profitPerSecond * (level > 0 ? Math.pow(1.5, level - 1) * level : 1)).toFixed(1)}$/сек
                       </div>
                     </div>
                     <Button
