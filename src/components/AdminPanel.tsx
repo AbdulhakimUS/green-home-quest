@@ -10,7 +10,7 @@ import { PurchaseHistory } from "./PurchaseHistory";
 import { Leaderboard } from "./Leaderboard";
 
 export const AdminPanel = () => {
-  const { allPlayers, gameSession, startGame, endGame, timeRemaining, logoutAdmin } = useGame();
+  const { allPlayers, gameSession, startGame, endGame, pauseGame, timeRemaining, logoutAdmin } = useGame();
   const [selectedPlayer, setSelectedPlayer] = useState<any | null>(null);
   const [timerMinutes, setTimerMinutes] = useState("30");
   const [showHistory, setShowHistory] = useState(false);
@@ -28,6 +28,16 @@ export const AdminPanel = () => {
     startGame(minutes);
   };
 
+  const handleCopyCode = () => {
+    if (gameSession?.code) {
+      navigator.clipboard.writeText(gameSession.code);
+      toast({
+        title: "Скопировано!",
+        description: "Код комнаты скопирован в буфер обмена",
+      });
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -39,20 +49,46 @@ export const AdminPanel = () => {
       <div className="min-h-screen bg-background p-4 space-y-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center space-y-2 mb-6">
-            <div className="flex items-center justify-center gap-4">
-              <h1 className="text-3xl font-bold">Админ Панель</h1>
-              <Button 
-                variant="destructive" 
-                size="sm"
-                onClick={logoutAdmin}
-                className="gap-2"
-              >
-                <LogOut className="w-4 h-4" />
-                Выйти
-              </Button>
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              <h1 className="text-2xl sm:text-3xl font-bold">Админ Панель</h1>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  onClick={logoutAdmin}
+                  className="gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Назад
+                </Button>
+                {gameSession?.status === 'active' && (
+                  <>
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      onClick={endGame}
+                      className="gap-2"
+                    >
+                      Завершить
+                    </Button>
+                    <Button 
+                      variant="default" 
+                      size="sm"
+                      onClick={pauseGame}
+                      className="gap-2"
+                    >
+                      Пауза
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
-            <p className="text-xl text-muted-foreground">
-              Код игры: <span className="font-mono font-bold text-primary text-2xl">{gameSession?.code}</span>
+            <p 
+              className="text-lg sm:text-xl text-muted-foreground cursor-pointer hover:text-primary transition-colors"
+              onClick={handleCopyCode}
+              title="Нажмите, чтобы скопировать"
+            >
+              Код игры: <span className="font-mono font-bold text-primary text-xl sm:text-2xl">{gameSession?.code}</span>
             </p>
             {gameSession && (
               <div className="inline-block px-4 py-2 rounded-full border-2" style={{

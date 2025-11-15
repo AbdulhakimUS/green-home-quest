@@ -21,6 +21,15 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [adminPassword, setAdminPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Автоматически вставляем код из URL параметра
+  useState(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    if (code && /^\d{6}$/.test(code)) {
+      setGameCode(code);
+    }
+  });
+
   const handlePlayerLogin = async () => {
     if (!gameCode || !nickname) {
       toast({

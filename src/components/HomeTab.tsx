@@ -53,33 +53,33 @@ export const HomeTab = () => {
         {/* Дом в центре */}
         <div className="absolute bottom-[25%] left-1/2 -translate-x-1/2 z-10">
           <div 
-            className="w-32 h-32 md:w-40 md:h-40 bg-card border-4 border-primary rounded-lg shadow-2xl flex items-center justify-center relative"
+            className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 bg-card border-2 sm:border-4 border-primary rounded-lg shadow-2xl flex items-center justify-center relative"
             style={{
               boxShadow: energyIntensity > 0 ? `0 0 ${energyIntensity/2}px rgba(234, 179, 8, ${energyIntensity/100})` : undefined
             }}
           >
-            <Building2 className="w-16 h-16 md:w-20 md:h-20 text-primary" />
+            <Building2 className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 text-primary" />
             
             {/* HUD дома с показателями */}
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-card/90 backdrop-blur-sm px-3 py-1 rounded-full border-2 border-primary">
-              <div className="flex items-center gap-1">
-                <Zap className="w-4 h-4 text-yellow-500" />
-                <span className="text-xs font-semibold">{energyItems.length}</span>
+            <div className="absolute -top-6 sm:-top-8 left-1/2 -translate-x-1/2 flex items-center gap-1 sm:gap-2 bg-card/90 backdrop-blur-sm px-2 sm:px-3 py-1 rounded-full border sm:border-2 border-primary">
+              <div className="flex items-center gap-0.5 sm:gap-1">
+                <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />
+                <span className="text-[10px] sm:text-xs font-semibold">{energyItems.length}</span>
               </div>
-              <div className="w-px h-4 bg-border" />
-              <div className="flex items-center gap-1">
-                <Wind className="w-4 h-4 text-info" />
-                <span className="text-xs font-semibold">{player?.oxygen || 0}</span>
+              <div className="w-px h-3 sm:h-4 bg-border" />
+              <div className="flex items-center gap-0.5 sm:gap-1">
+                <Wind className="w-3 h-3 sm:w-4 sm:h-4 text-info" />
+                <span className="text-[10px] sm:text-xs font-semibold">{player?.oxygen || 0}</span>
               </div>
-              <div className="w-px h-4 bg-border" />
-              <div className="flex items-center gap-1">
-                <Droplets className="w-4 h-4 text-blue-500" />
-                <span className="text-xs font-semibold">{waterItems.length}</span>
+              <div className="w-px h-3 sm:h-4 bg-border" />
+              <div className="flex items-center gap-0.5 sm:gap-1">
+                <Droplets className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
+                <span className="text-[10px] sm:text-xs font-semibold">{waterItems.length}</span>
               </div>
             </div>
             
             {/* Окна с подсветкой */}
-            <div className="absolute top-4 left-4 w-4 h-4 bg-background rounded-sm border border-border">
+            <div className="absolute top-2 sm:top-4 left-2 sm:left-4 w-3 h-3 sm:w-4 sm:h-4 bg-background rounded-sm border border-border">
               {energyIntensity > 0 && (
                 <div 
                   className="w-full h-full bg-yellow-400 rounded-sm animate-pulse"
@@ -247,37 +247,37 @@ export const HomeTab = () => {
       </div>
 
       {/* Показатели с прогресс-барами */}
-      <div className="space-y-4">
-        <div className="bg-card border border-border rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-2">
-            <Zap className="w-5 h-5 text-yellow-500" />
+      <div className="space-y-3 sm:space-y-4">
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2">
+            <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
             <div className="flex-1">
-              <div className="text-sm font-semibold">Энергия</div>
-              <Progress value={Math.min((energyItems.length / 6) * 100, 100)} className="h-2 mt-1" />
+              <div className="text-xs sm:text-sm font-semibold">Энергия</div>
+              <Progress value={Math.min((energyItems.length / 6) * 100, 100)} className="h-1.5 sm:h-2 mt-1" />
             </div>
-            <div className="text-sm font-bold">{energyItems.length}/6</div>
+            <div className="text-xs sm:text-sm font-bold">{energyItems.length}/6</div>
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-2">
-            <Wind className="w-5 h-5 text-info" />
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2">
+            <Wind className="w-4 h-4 sm:w-5 sm:h-5 text-info" />
             <div className="flex-1">
-              <div className="text-sm font-semibold">Кислород</div>
-              <Progress value={Math.min((player?.oxygen || 0) / 100 * 100, 100)} className="h-2 mt-1" />
+              <div className="text-xs sm:text-sm font-semibold">Кислород</div>
+              <Progress value={Math.min((player?.oxygen || 0) / 100 * 100, 100)} className="h-1.5 sm:h-2 mt-1" />
             </div>
-            <div className="text-sm font-bold">{player?.oxygen || 0}</div>
+            <div className="text-xs sm:text-sm font-bold">{player?.oxygen || 0}</div>
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-lg p-4">
-          <div className="flex items-center gap-3 mb-2">
-            <Droplets className="w-5 h-5 text-blue-500" />
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2">
+            <Droplets className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
             <div className="flex-1">
-              <div className="text-sm font-semibold">Вода</div>
-              <Progress value={Math.min((waterItems.length / 6) * 100, 100)} className="h-2 mt-1" />
+              <div className="text-xs sm:text-sm font-semibold">Вода</div>
+              <Progress value={Math.min((waterItems.length / 6) * 100, 100)} className="h-1.5 sm:h-2 mt-1" />
             </div>
-            <div className="text-sm font-bold">{waterItems.length}/6</div>
+            <div className="text-xs sm:text-sm font-bold">{waterItems.length}/6</div>
           </div>
         </div>
       </div>

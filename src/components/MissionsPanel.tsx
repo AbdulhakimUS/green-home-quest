@@ -99,8 +99,15 @@ export const MissionsPanel = () => {
             .sort((a, b) => {
               const aCompleted = player.completed_missions.includes(a.id);
               const bCompleted = player.completed_missions.includes(b.id);
-              if (aCompleted === bCompleted) return 0;
-              return aCompleted ? 1 : -1;
+              const aCanComplete = !aCompleted && a.condition(player);
+              const bCanComplete = !bCompleted && b.condition(player);
+              
+              // Сначала выполняемые, потом невыполненные, потом выполненные
+              if (aCanComplete && !bCanComplete) return -1;
+              if (!aCanComplete && bCanComplete) return 1;
+              if (aCompleted && !bCompleted) return 1;
+              if (!aCompleted && bCompleted) return -1;
+              return 0;
             })
             .map((mission) => {
             const isCompleted = player.completed_missions.includes(mission.id);
