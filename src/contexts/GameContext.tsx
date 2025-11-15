@@ -38,6 +38,7 @@ interface GameContextType {
   purchaseItem: (item: ShopItem) => Promise<void>;
   startGame: (duration: number) => Promise<void>;
   endGame: () => Promise<void>;
+  pauseGame: () => Promise<void>;
   claimMissionReward: (missionId: string, reward: number) => Promise<void>;
   removePlayer: () => Promise<void>;
   logoutAdmin: () => void;
@@ -430,6 +431,25 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const pauseGame = async () => {
+    if (!gameSession || !isAdmin) return;
+
+    const newStatus = gameSession.status === 'active' ? 'waiting' : 'active';
+    
+    await supabase
+      .from('game_sessions')
+      .update({ 
+        status: newStatus,
+        started_at: newStatus === 'active' ? new Date().toISOString() : gameSession.started_at
+      })
+      .eq('id', gameSession.id);
+
+    toast({
+      title: newStatus === 'active' ? "Игра возобновлена!" : "Игра на паузе",
+      description: newStatus === 'active' ? "Таймер продолжается" : "Начисление прибыли остановлено",
+    });
+  };
+
   // Система прибыли
   useEffect(() => {
     if (!player || !gameSession || gameSession.status !== 'active') return;
@@ -491,6 +511,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         purchaseItem,
         startGame,
         endGame,
+        pauseGame,
         claimMissionReward,
         removePlayer,
         logoutAdmin,
