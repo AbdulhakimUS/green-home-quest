@@ -60,16 +60,16 @@ export const ShopTab = () => {
 
   return (
     <>
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-6 animate-fade-in">
         <div className="text-center space-y-2">
-          <ShoppingBag className="w-12 h-12 mx-auto text-primary" />
-          <h2 className="text-2xl font-bold">Магазин</h2>
-          <p className="text-muted-foreground">
+          <ShoppingBag className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-primary" />
+          <h2 className="text-xl sm:text-2xl font-bold">Магазин</h2>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Категория: {player.selected_card === "energy" ? "Энергия" : player.selected_card === "water" ? "Вода" : "Зелень"}
           </p>
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:gap-4">
           {items.map((item) => {
             const cost = getCost(item);
             const level = getLevel(item);
@@ -81,13 +81,13 @@ export const ShopTab = () => {
                 className={`hover-scale cursor-pointer ${!canAfford ? "opacity-60" : ""}`}
                 onClick={() => setSelectedItem(item)}
               >
-                <CardHeader>
+                <CardHeader className="p-3 sm:p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex flex-wrap items-center gap-2 text-base sm:text-lg">
                         {item.name}
                         {level > 0 && (
-                          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full">
+                          <span className="text-[10px] sm:text-xs bg-primary text-primary-foreground px-2 py-0.5 sm:py-1 rounded-full">
                             Ур. {level}
                           </span>
                         )}
@@ -98,16 +98,16 @@ export const ShopTab = () => {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <div className="text-sm text-muted-foreground">
+                <CardContent className="p-3 sm:p-6 pt-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-0.5 sm:space-y-1">
+                      <div className="text-xs sm:text-sm text-muted-foreground">
                         Эффективность: ⭐ {Math.min(10, Math.round(item.efficiency * (1 + level * 0.2)))}/10
                       </div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-xs sm:text-sm text-muted-foreground">
                         Экология: 🌿 {item.ecology}/10
                       </div>
-                      <div className="text-sm text-primary font-semibold">
+                      <div className="text-xs sm:text-sm text-primary font-semibold">
                         💰 {(item.profitPerSecond * (level > 0 ? Math.pow(1.5, level - 1) * level : 1)).toFixed(1)}$/сек
                       </div>
                     </div>
@@ -117,7 +117,8 @@ export const ShopTab = () => {
                         handlePurchase(item);
                       }}
                       disabled={!canAfford || player.money === 0}
-                      className="min-w-[100px]"
+                      className="min-w-[100px] text-xs sm:text-sm w-full sm:w-auto"
+                      size="sm"
                     >
                       {level > 0 ? "Улучшить" : "Купить"} {cost}$
                     </Button>
