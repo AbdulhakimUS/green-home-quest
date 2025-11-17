@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,14 +21,55 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [adminPassword, setAdminPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Автоматически вставляем код из URL параметра
-  useState(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    if (code && /^\d{6}$/.test(code)) {
-      setGameCode(code);
+  // Автоматически вставляем код из URL параметра и автовозврат после F5
+  useEffect(() => {
+    // Автоочистка старых данных (>3 часов)
+    const cleanOldData = () => {
+      const keys = Object.keys(localStorage);
+      const now = Date.now();
+      const threeHours = 3 * 60 * 60 * 1000;
+      
+      keys.forEach(key => {
+        if (key.startsWith('game_') || key.startsWith('player_') || key === 'current_session') {
+          try {
+            const data = JSON.parse(localStorage.getItem(key) || '{}');
+            if (data.timestamp && now - data.timestamp > threeHours) {
+              localStorage.removeItem(key);
+            }
+          } catch (e) {
+            // Ignore parse errors
+          }
+        }
+      });
+    };
+    cleanOldData();
+
+    // Автовозврат в комнату после перезагрузки
+    const savedSession = localStorage.getItem('current_session');
+    if (savedSession) {
+      try {
+        const { code, nickname: savedNickname, timestamp } = JSON.parse(savedSession);
+        const now = Date.now();
+        const threeHours = 3 * 60 * 60 * 1000;
+        
+        if (code && savedNickname && now - timestamp < threeHours) {
+          setGameCode(code);
+          setNickname(savedNickname);
+        } else {
+          localStorage.removeItem('current_session');
+        }
+      } catch (e) {
+        localStorage.removeItem('current_session');
+      }
     }
-  });
+
+    // Автовставка кода из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const codeFromUrl = urlParams.get('code');
+    if (codeFromUrl && /^\d{6}$/.test(codeFromUrl)) {
+      setGameCode(codeFromUrl);
+    }
+  }, []);
 
   const handlePlayerLogin = async () => {
     if (!gameCode || !nickname) {
@@ -114,6 +155,11 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       // Сохраняем в localStorage для восстановления
       localStorage.setItem('eco_player_id', newPlayer.id);
       localStorage.setItem('eco_session_id', session.id);
+      localStorage.setItem('current_session', JSON.stringify({
+        code: gameCode,
+        nickname,
+        timestamp: Date.now()
+      }));
       
       toast({
         title: "Успешно!",

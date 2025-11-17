@@ -60,21 +60,21 @@ export const HomeTab = () => {
           >
             <Building2 className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 text-primary" />
             
-            {/* HUD дома с показателями */}
+            {/* HUD дома с показателями: Энергия - Кислород - Вода */}
             <div className="absolute -top-6 sm:-top-8 left-1/2 -translate-x-1/2 flex items-center gap-1 sm:gap-2 bg-card/90 backdrop-blur-sm px-2 sm:px-3 py-1 rounded-full border sm:border-2 border-primary">
               <div className="flex items-center gap-0.5 sm:gap-1">
                 <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />
-                <span className="text-[10px] sm:text-xs font-semibold">{energyItems.length}</span>
+                <span className="text-[10px] sm:text-xs font-semibold">{energyItems.reduce((sum, i) => sum + i.efficiency * i.level, 0).toFixed(0)}</span>
               </div>
               <div className="w-px h-3 sm:h-4 bg-border" />
               <div className="flex items-center gap-0.5 sm:gap-1">
-                <Wind className="w-3 h-3 sm:w-4 sm:h-4 text-info" />
-                <span className="text-[10px] sm:text-xs font-semibold">{player?.oxygen || 0}</span>
+                <Wind className="w-3 h-3 sm:w-4 sm:h-4 text-success" />
+                <span className="text-[10px] sm:text-xs font-semibold">O₂ {player?.oxygen.toFixed(0) || 0}</span>
               </div>
               <div className="w-px h-3 sm:h-4 bg-border" />
               <div className="flex items-center gap-0.5 sm:gap-1">
                 <Droplets className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
-                <span className="text-[10px] sm:text-xs font-semibold">{waterItems.length}</span>
+                <span className="text-[10px] sm:text-xs font-semibold">{waterItems.reduce((sum, i) => sum + i.efficiency * i.level, 0).toFixed(0)}</span>
               </div>
             </div>
             
@@ -101,13 +101,16 @@ export const HomeTab = () => {
         {/* Купленные предметы энергии слева от дома */}
         {energyItems.map((item, index) => {
           const ItemIcon = getItemIcon(item);
+          // Ограничиваем позиции внутри квадратной зоны дома
+          const bottomPos = Math.min(Math.max(30 + index * 12, 20), 70);
+          const leftPos = Math.min(Math.max(15 + index * 8, 10), 35);
           return (
             <div
               key={`energy-${item.id}-${index}`}
               className="absolute z-5"
               style={{
-                bottom: `${30 + index * 15}%`,
-                left: `${15 + index * 10}%`,
+                bottom: `${bottomPos}%`,
+                left: `${leftPos}%`,
               }}
             >
               <div className="relative">
@@ -142,13 +145,16 @@ export const HomeTab = () => {
         {/* Купленные предметы воды справа от дома */}
         {waterItems.map((item, index) => {
           const ItemIcon = Droplets;
+          // Ограничиваем позиции внутри квадратной зоны дома
+          const bottomPos = Math.min(Math.max(30 + index * 12, 20), 70);
+          const rightPos = Math.min(Math.max(15 + index * 8, 10), 35);
           return (
             <div
               key={`water-${item.id}-${index}`}
               className="absolute z-5"
               style={{
-                bottom: `${30 + index * 15}%`,
-                right: `${15 + index * 10}%`,
+                bottom: `${bottomPos}%`,
+                right: `${rightPos}%`,
               }}
             >
               <div className="relative">
@@ -178,12 +184,14 @@ export const HomeTab = () => {
         {/* Купленные растения внизу */}
         {greeneryItems.map((item, index) => {
           const ItemIcon = Trees;
+          // Ограничиваем позиции на газоне
+          const leftPos = Math.min(Math.max(20 + index * 12, 15), 75);
           return (
             <div
               key={`greenery-${item.id}-${index}`}
               className="absolute bottom-[5%] z-5"
               style={{
-                left: `${20 + index * 15}%`,
+                left: `${leftPos}%`,
               }}
             >
               <div className="relative">

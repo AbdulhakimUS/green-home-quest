@@ -237,7 +237,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
-  }, [gameSession, isAdmin]);
+  }, [gameSession?.status, gameSession?.started_at, gameSession?.timer_duration, isAdmin]);
 
   const updateMoney = async (amount: number) => {
     if (!player) return;
@@ -312,13 +312,14 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Рассчитываем повышение уровня дома
-    if (item.tier === 1) houseIncrease = 0.25;
-    else if (item.tier === 2) houseIncrease = 0.5;
-    else if (item.tier === 3) houseIncrease = 0.75;
-    else if (item.tier === 4) houseIncrease = 1.0;
-    else if (item.tier === 5) houseIncrease = 1.25;
-    else houseIncrease = 1.5;
+    // Рассчитываем повышение уровня дома (добавляем бонус за уровень предмета)
+    const levelBonus = newLevel * 0.1; // Бонус 10% за каждый уровень
+    if (item.tier === 1) houseIncrease = 0.25 + levelBonus;
+    else if (item.tier === 2) houseIncrease = 0.5 + levelBonus;
+    else if (item.tier === 3) houseIncrease = 0.75 + levelBonus;
+    else if (item.tier === 4) houseIncrease = 1.0 + levelBonus;
+    else if (item.tier === 5) houseIncrease = 1.25 + levelBonus;
+    else houseIncrease = 1.5 + levelBonus;
 
     // Растения увеличивают кислород
     if (item.category === 'greenery') {
@@ -434,23 +435,26 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const pauseGame = async () => {
     if (!gameSession || !isAdmin) return;
 
-    const newStatus = gameSession.status === 'active' ? 'waiting' : 'active';
+    const newStatus = gameSession.status === 'active' ? 'paused' : 'active';
     
     await supabase
       .from('game_sessions')
       .update({ 
         status: newStatus,
-        started_at: newStatus === 'active' ? new Date().toISOString() : gameSession.started_at
+        // Если возобновляем, пересчитываем started_at с учетом прошедшего времени
+        started_at: newStatus === 'active' 
+          ? new Date(Date.now() - (gameSession.timer_duration - (timeRemaining || 0)) * 1000).toISOString()
+          : gameSession.started_at
       })
       .eq('id', gameSession.id);
 
     toast({
       title: newStatus === 'active' ? "Игра возобновлена!" : "Игра на паузе",
-      description: newStatus === 'active' ? "Таймер продолжается" : "Начисление прибыли остановлено",
+      description: newStatus === 'active' ? "Таймер продолжается" : "Таймер и прибыль остановлены",
     });
   };
 
-  // Система прибыли
+  // Система прибыли (стабильная каждую секунду)
   useEffect(() => {
     if (!player || !gameSession || gameSession.status !== 'active') return;
 
@@ -463,23 +467,13 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       return totalProfit;
     };
 
-    const getInterval = () => {
-      const totalIncome = calculateProfit();
-      // Если доход выше 100$/сек, начисляем каждые 0.5 сек
-      if (totalIncome > 100) return 500;
-      
-      const maxLevel = Math.max(...player.inventory.map(i => i.level), 1);
-      if (maxLevel === 1) return 2000;
-      if (maxLevel === 2) return 1500;
-      return 1000;
-    };
-
+    // Стабильный интервал 1 секунда
     const interval = setInterval(() => {
       const profit = calculateProfit();
       if (profit > 0) {
         updateMoney(profit);
       }
-    }, getInterval());
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [player?.id, player?.inventory, gameSession?.status]);
