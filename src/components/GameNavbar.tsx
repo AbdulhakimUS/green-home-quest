@@ -1,4 +1,4 @@
-import { Home, ShoppingCart, CreditCard, Coins, TrendingUp, Clock, History, Target, Gift } from "lucide-react";
+import { Home, ShoppingCart, CreditCard, Coins, TrendingUp, Clock, History, Target, Gift, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useGame } from "@/contexts/GameContext";
@@ -54,19 +54,20 @@ export const GameNavbar = ({ activeTab, onTabChange, onExitClick }: GameNavbarPr
 
   return (
     <>
+      {/* Кнопка выхода для мобильных - сверху справа */}
+      {onExitClick && (
+        <Button
+          variant="destructive"
+          onClick={onExitClick}
+          className="fixed top-4 right-4 z-50 w-12 h-12 rounded-full p-0 flex items-center justify-center lg:hidden shadow-lg"
+          title="Выйти из комнаты"
+        >
+          <LogOut className="w-5 h-5" />
+        </Button>
+      )}
+      
       <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border z-50 lg:left-0 lg:top-0 lg:bottom-0 lg:right-auto lg:w-64 lg:border-r lg:border-t-0">
         <div className="flex justify-around items-center h-16 px-2 lg:flex-col lg:h-full lg:justify-start lg:gap-4 lg:py-8">
-          {/* Круглая кнопка "Назад" для игроков */}
-          {onExitClick && (
-            <Button
-              variant="ghost"
-              onClick={onExitClick}
-              className="w-12 h-12 rounded-full p-0 flex items-center justify-center lg:hidden"
-              title="Выйти из комнаты"
-            >
-              <Home className="w-5 h-5" />
-            </Button>
-          )}
           <Button
             variant={activeTab === "home" ? "default" : "ghost"}
             onClick={() => onTabChange("home")}
