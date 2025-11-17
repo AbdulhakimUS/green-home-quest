@@ -48,4 +48,5 @@ export interface GameSession {
   players: Player[];
   isActive: boolean;
   createdAt: Date;
+  status?: 'waiting' | 'active' | 'finished' | 'paused';
 }

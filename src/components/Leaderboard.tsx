@@ -4,7 +4,10 @@ import { useGame } from "@/contexts/GameContext";
 import { Player } from "@/types/game";
 
 export const Leaderboard = () => {
-  const { allPlayers } = useGame();
+  const { allPlayers, isAdmin } = useGame();
+
+  // Показываем лидерборд только админу
+  if (!isAdmin) return null;
 
   // Сортируем игроков по развитию дома
   const sortedPlayers = [...allPlayers].sort((a, b) => {

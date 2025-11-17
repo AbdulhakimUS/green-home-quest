@@ -1,4 +1,4 @@
-import { Users, TrendingUp, Coins, Play, Clock, History, Trophy, LogOut } from "lucide-react";
+import { Users, TrendingUp, Coins, Play, Clock, History, Trophy, LogOut, Pause, PlayIcon } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGame } from "@/contexts/GameContext";
 import { useState } from "react";
@@ -9,11 +9,16 @@ import { toast } from "@/hooks/use-toast";
 import { PurchaseHistory } from "./PurchaseHistory";
 import { Leaderboard } from "./Leaderboard";
 
+// Extend the game session type to include pause status
+type ExtendedStatus = 'waiting' | 'active' | 'finished' | 'paused';
+
 export const AdminPanel = () => {
   const { allPlayers, gameSession, startGame, endGame, pauseGame, timeRemaining, logoutAdmin } = useGame();
   const [selectedPlayer, setSelectedPlayer] = useState<any | null>(null);
   const [timerMinutes, setTimerMinutes] = useState("30");
   const [showHistory, setShowHistory] = useState(false);
+
+  const sessionStatus = gameSession?.status as ExtendedStatus;
 
   const handleStartGame = () => {
     const minutes = parseInt(timerMinutes);
@@ -30,10 +35,11 @@ export const AdminPanel = () => {
 
   const handleCopyCode = () => {
     if (gameSession?.code) {
-      navigator.clipboard.writeText(gameSession.code);
+      const fullUrl = `${window.location.origin}/?code=${gameSession.code}`;
+      navigator.clipboard.writeText(fullUrl);
       toast({
-        title: "Скопировано!",
-        description: "Код комнаты скопирован в буфер обмена",
+        title: "Ссылка скопирована!",
+        description: "Полная ссылка на комнату скопирована",
       });
     }
   };
@@ -61,7 +67,7 @@ export const AdminPanel = () => {
                   <LogOut className="w-4 h-4" />
                   Назад
                 </Button>
-                {gameSession?.status === 'active' && (
+                {sessionStatus === 'active' && (
                   <>
                     <Button 
                       variant="secondary" 
@@ -77,7 +83,29 @@ export const AdminPanel = () => {
                       onClick={pauseGame}
                       className="gap-2"
                     >
+                      <Pause className="w-4 h-4" />
                       Пауза
+                    </Button>
+                  </>
+                )}
+                {sessionStatus === 'paused' && (
+                  <>
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      onClick={endGame}
+                      className="gap-2"
+                    >
+                      Завершить
+                    </Button>
+                    <Button 
+                      variant="default" 
+                      size="sm"
+                      onClick={pauseGame}
+                      className="gap-2"
+                    >
+                      <PlayIcon className="w-4 h-4" />
+                      Продолжить
                     </Button>
                   </>
                 )}
@@ -92,15 +120,18 @@ export const AdminPanel = () => {
             </p>
             {gameSession && (
               <div className="inline-block px-4 py-2 rounded-full border-2" style={{
-                borderColor: gameSession.status === 'waiting' ? 'hsl(var(--warning))' :
-                  gameSession.status === 'active' ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))',
-                backgroundColor: gameSession.status === 'waiting' ? 'hsl(var(--warning) / 0.1)' :
-                  gameSession.status === 'active' ? 'hsl(var(--success) / 0.1)' : 'hsl(var(--muted) / 0.1)'
+                borderColor: sessionStatus === 'waiting' ? 'hsl(var(--warning))' :
+                  sessionStatus === 'active' ? 'hsl(var(--success))' : 
+                  sessionStatus === 'paused' ? 'hsl(var(--info))' : 'hsl(var(--muted-foreground))',
+                backgroundColor: sessionStatus === 'waiting' ? 'hsl(var(--warning) / 0.1)' :
+                  sessionStatus === 'active' ? 'hsl(var(--success) / 0.1)' : 
+                  sessionStatus === 'paused' ? 'hsl(var(--info) / 0.1)' : 'hsl(var(--muted) / 0.1)'
               }}>
                 <span className="font-semibold">
-                  {gameSession.status === 'waiting' && "Ожидание"}
-                  {gameSession.status === 'active' && `Игра идет: ${timeRemaining ? formatTime(timeRemaining) : ''}`}
-                  {gameSession.status === 'finished' && "Игра завершена"}
+                  {sessionStatus === 'waiting' && "Ожидание"}
+                  {sessionStatus === 'active' && `Игра идет: ${timeRemaining ? formatTime(timeRemaining) : ''}`}
+                  {sessionStatus === 'paused' && "Пауза"}
+                  {sessionStatus === 'finished' && "Игра завершена"}
                 </span>
               </div>
             )}
@@ -135,15 +166,6 @@ export const AdminPanel = () => {
             </Card>
           )}
 
-          {gameSession?.status === 'active' && (
-            <Card className="mb-6 border-destructive">
-              <CardContent className="pt-6">
-                <Button onClick={endGame} variant="destructive" size="lg" className="w-full">
-                  Завершить игру
-                </Button>
-              </CardContent>
-            </Card>
-          )}
 
           <Card>
             <CardHeader>

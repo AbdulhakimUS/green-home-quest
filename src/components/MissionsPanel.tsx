@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useGame } from "@/contexts/GameContext";
 import { Mission } from "@/types/game";
+import { toast } from "sonner";
 
 const missions: Mission[] = [
   {
@@ -81,7 +82,15 @@ const missions: Mission[] = [
 ];
 
 export const MissionsPanel = () => {
-  const { player, claimMissionReward } = useGame();
+  const { player, claimMissionReward, updateMoney } = useGame();
+
+  const handleClaimReward = async (missionId: string, reward: number) => {
+    if (player) {
+      await updateMoney(player.money + reward);
+      await claimMissionReward(missionId, reward);
+      toast.success(`Награда получена! +${reward}$`);
+    }
+  };
 
   if (!player) return null;
 
@@ -140,7 +149,7 @@ export const MissionsPanel = () => {
                   {canComplete && (
                     <Button 
                       size="sm" 
-                      onClick={() => claimMissionReward(mission.id, mission.reward)}
+                      onClick={() => handleClaimReward(mission.id, mission.reward)}
                     >
                       Забрать
                     </Button>
