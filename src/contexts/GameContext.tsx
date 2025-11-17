@@ -107,27 +107,20 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
   // Подписка на изменения игроков
   useEffect(() => {
-    if (!gameSession?.id) {
-      console.log('❌ No gameSession, skipping player subscription');
-      return;
-    }
-
-    console.log('🔄 Setting up player subscription for session:', gameSession.id);
+    if (!gameSession?.id) return;
 
     const loadPlayers = async () => {
-      console.log('📥 Loading players for session:', gameSession.id);
       const { data, error } = await supabase
         .from('players')
         .select('*')
         .eq('session_id', gameSession.id);
       
       if (error) {
-        console.error('❌ Error loading players:', error);
+        console.error('Error loading players:', error);
         return;
       }
       
       if (data) {
-        console.log('✅ Loaded players:', data.length);
         const players = data.map(p => ({
           ...p,
           selected_card: (p.selected_card as CardType) || null,
@@ -157,29 +150,18 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           table: 'players',
           filter: `session_id=eq.${gameSession.id}`
         },
-        (payload) => {
-          console.log('🔔 Players changed:', payload);
-          loadPlayers();
-        }
+        () => loadPlayers()
       )
-      .subscribe((status) => {
-        console.log('📡 Player subscription status:', status);
-      });
+      .subscribe();
 
     return () => {
-      console.log('🔌 Unsubscribing from players channel');
       supabase.removeChannel(channel);
     };
   }, [gameSession?.id]);
 
   // Подписка на изменения сессии
   useEffect(() => {
-    if (!gameSession?.id) {
-      console.log('❌ No gameSession, skipping session subscription');
-      return;
-    }
-
-    console.log('🔄 Setting up session subscription for:', gameSession.id);
+    if (!gameSession?.id) return;
 
     const channel = supabase
       .channel(`session-changes-${gameSession.id}`)
@@ -191,17 +173,11 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           table: 'game_sessions',
           filter: `id=eq.${gameSession.id}`
         },
-        (payload) => {
-          console.log('🔔 Session updated:', payload.new);
-          setGameSession(payload.new as GameSession);
-        }
+        (payload) => setGameSession(payload.new as GameSession)
       )
-      .subscribe((status) => {
-        console.log('📡 Session subscription status:', status);
-      });
+      .subscribe();
 
     return () => {
-      console.log('🔌 Unsubscribing from session channel');
       supabase.removeChannel(channel);
     };
   }, [gameSession?.id]);
