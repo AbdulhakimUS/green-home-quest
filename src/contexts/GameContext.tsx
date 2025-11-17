@@ -47,7 +47,7 @@ interface GameContextType {
   setGameSession: (session: GameSession | null) => void;
 }
 
-const GameContext = createContext<GameContextType | undefined>(undefined);
+const GameContext = createContext<GameContextType | null>(null);
 
 export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [player, setPlayer] = useState<Player | null>(null);
@@ -521,7 +521,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
 export const useGame = () => {
   const context = useContext(GameContext);
-  if (!context) {
+  if (context === null) {
     throw new Error("useGame must be used within GameProvider");
   }
   return context;
