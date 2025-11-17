@@ -52,7 +52,12 @@ const GameContent = () => {
   }
 
   if (isAdmin) {
-    return <AdminPanel />;
+    return (
+      <>
+        <AdminPanel />
+        <Footer />
+      </>
+    );
   }
 
   return (

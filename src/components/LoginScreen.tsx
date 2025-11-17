@@ -124,7 +124,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   };
 
   const handleAdminLogin = async () => {
-    if (adminLogin !== "eco-home" || adminPassword !== "Shkola74") {
+    if (adminLogin !== "admin" || adminPassword !== "green2025") {
       toast({
         title: "Ошибка",
         description: "Неверный логин или пароль",
