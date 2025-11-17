@@ -59,7 +59,7 @@ export const GameNavbar = ({ activeTab, onTabChange, onExitClick }: GameNavbarPr
         <Button
           variant="destructive"
           onClick={onExitClick}
-          className="fixed top-4 left-4 z-50 w-12 h-12 rounded-full p-0 flex items-center justify-center lg:hidden shadow-lg"
+          className="fixed top-24 left-4 z-50 w-12 h-12 rounded-full p-0 flex items-center justify-center lg:hidden shadow-lg"
           title="Выйти из комнаты"
         >
           <LogOut className="w-5 h-5" />
