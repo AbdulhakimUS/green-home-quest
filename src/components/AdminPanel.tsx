@@ -214,12 +214,13 @@ export const AdminPanel = () => {
       </div>
 
       <Dialog open={!!selectedPlayer} onOpenChange={(open) => !open && setSelectedPlayer(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Информация об игроке</DialogTitle>
           </DialogHeader>
           {selectedPlayer && (
-            <div className="space-y-4">
+            <div className="overflow-x-auto">
+              <div className="space-y-4 min-w-[400px]">
               <div className="text-center p-4 bg-muted rounded-lg">
                 <h3 className="text-2xl font-bold mb-2">{selectedPlayer.nickname}</h3>
               </div>
@@ -299,6 +300,7 @@ export const AdminPanel = () => {
                 </CardContent>
               </Card>
             </div>
+          </div>
           )}
         </DialogContent>
       </Dialog>
