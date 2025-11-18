@@ -51,11 +51,12 @@ export const GameNavbar = ({ activeTab, onTabChange, onExitClick }: GameNavbarPr
   };
 
   const houseProgress = player ? ((player.house_level / 25) * 100) : 0;
+  const displayLevel = player ? Math.round(player.house_level * 10) / 10 : 0;
 
   return (
     <>
-      {/* Кнопка выхода для мобильных - сверху слева */}
-      {onExitClick && (
+      {/* Кнопка выхода для мобильных - сверху слева, только на вкладке "Дом" */}
+      {onExitClick && activeTab === 'home' && (
         <Button
           variant="destructive"
           onClick={onExitClick}
@@ -117,32 +118,32 @@ export const GameNavbar = ({ activeTab, onTabChange, onExitClick }: GameNavbarPr
       </nav>
 
       <div className="fixed top-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-b border-border z-40 lg:left-64">
-        <div className="flex flex-col gap-2 p-2 sm:p-3">
-          <div className="flex justify-between items-center gap-2">
-            <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-success flex-shrink-0" />
-              <span className="text-xs sm:text-sm font-semibold truncate">
-                {player && player.house_level >= 25 ? "Макс" : `Ур. ${player?.house_level.toFixed(1) || 1}`}
+        <div className="flex flex-col gap-3 p-3 sm:p-4">
+          <div className="flex justify-between items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-success flex-shrink-0" />
+              <span className="text-sm sm:text-base font-semibold truncate">
+                {player && player.house_level >= 25 ? "Макс" : `Ур. ${displayLevel}`}
               </span>
             </div>
             {timeRemaining !== null && gameSession?.status === 'active' && (
-              <div className="flex items-center gap-1 sm:gap-2 text-warning">
-                <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                <span className="text-xs sm:text-sm font-bold">{formatTime(timeRemaining)}</span>
+              <div className="flex items-center gap-2 text-warning px-2 py-1 bg-warning/10 rounded-md">
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span className="text-sm sm:text-base font-bold">{formatTime(timeRemaining)}</span>
               </div>
             )}
-            <div className="flex flex-col items-end gap-0.5 sm:gap-1 min-w-0">
-              <div className="flex items-center gap-1 sm:gap-2">
-                <Coins className="w-3 h-3 sm:w-4 sm:h-4 text-warning flex-shrink-0" />
-                <span className="text-xs sm:text-sm font-semibold truncate">{player?.money.toFixed(0) || 0}$</span>
+            <div className="flex flex-col items-end gap-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <Coins className="w-4 h-4 sm:w-5 sm:h-5 text-warning flex-shrink-0" />
+                <span className="text-sm sm:text-base font-semibold truncate">{player?.money.toFixed(0) || 0}$</span>
               </div>
-              <div className="text-[10px] sm:text-xs text-success whitespace-nowrap">
+              <div className="text-xs sm:text-sm text-success whitespace-nowrap">
                 {currentIncome.toFixed(1)}$/сек
               </div>
             </div>
           </div>
           {player && player.house_level < 25 && (
-            <Progress value={houseProgress} className="h-2" />
+            <Progress value={houseProgress} className="h-2.5" />
           )}
         </div>
       </div>

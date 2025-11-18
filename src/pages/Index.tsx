@@ -68,7 +68,7 @@ const GameContent = () => {
         onExitClick={() => setShowExitConfirm(true)}
       />
       
-      <main className="flex-1 pt-24 pb-20 px-4 lg:pl-72 lg:pt-24 lg:pb-8">
+      <main className="flex-1 pt-28 pb-20 px-4 lg:pl-72 lg:pt-28 lg:pb-8">
         <div className="max-w-2xl mx-auto space-y-6">
           {activeTab === "home" && <HomeTab />}
           {activeTab === "cards" && <CardsTab />}
