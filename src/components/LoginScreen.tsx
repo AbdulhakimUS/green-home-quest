@@ -108,6 +108,17 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       return;
     }
 
+    // Проверяем статус игры - если игра уже началась, новые игроки не могут присоединиться
+    if (session.status === 'active' || session.status === 'paused') {
+      toast({
+        title: "Ошибка",
+        description: "Игра уже началась. Присоединиться нельзя.",
+        variant: "destructive"
+      });
+      setLoading(false);
+      return;
+    }
+
     const { data: existingPlayer } = await supabase
       .from('players')
       .select('*')
@@ -170,7 +181,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   };
 
   const handleAdminLogin = async () => {
-    if (adminLogin !== "admin" || adminPassword !== "green2025") {
+    if (adminLogin !== "eco-home" || adminPassword !== "Shkola74") {
       toast({
         title: "Ошибка",
         description: "Неверный логин или пароль",
