@@ -39,6 +39,7 @@ interface GameContextType {
   startGame: (duration: number) => Promise<void>;
   endGame: () => Promise<void>;
   pauseGame: () => Promise<void>;
+  restartGame: () => Promise<void>;
   claimMissionReward: (missionId: string, reward: number) => Promise<void>;
   removePlayer: () => Promise<void>;
   logoutAdmin: () => void;
@@ -452,6 +453,53 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const restartGame = async () => {
+    if (!gameSession || !isAdmin) return;
+
+    // Получаем всех игроков этой сессии
+    const { data: sessionPlayers } = await supabase
+      .from('players')
+      .select('id')
+      .eq('session_id', gameSession.id);
+
+    // Удаляем историю покупок для всех игроков
+    if (sessionPlayers && sessionPlayers.length > 0) {
+      const playerIds = sessionPlayers.map(p => p.id);
+      await supabase
+        .from('purchase_history')
+        .delete()
+        .in('player_id', playerIds);
+    }
+
+    // Сбрасываем всех игроков к начальным значениям
+    await supabase
+      .from('players')
+      .update({
+        money: 10000,
+        house_level: 1,
+        selected_card: null,
+        inventory: [],
+        oxygen: 0,
+        completed_missions: []
+      })
+      .eq('session_id', gameSession.id);
+
+    // Сбрасываем сессию
+    await supabase
+      .from('game_sessions')
+      .update({
+        status: 'waiting',
+        started_at: null,
+        timer_duration: 1800
+      })
+      .eq('id', gameSession.id);
+
+    toast({
+      title: "Игра перезапущена!",
+      description: "Все игроки сброшены. Можно начать заново.",
+    });
+  };
+
   // Система прибыли (стабильная каждую секунду)
   useEffect(() => {
     if (!player || !gameSession || gameSession.status !== 'active') return;
@@ -504,6 +552,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         startGame,
         endGame,
         pauseGame,
+        restartGame,
         claimMissionReward,
         removePlayer,
         logoutAdmin,
