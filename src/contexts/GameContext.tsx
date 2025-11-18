@@ -190,41 +190,44 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Если игра на паузе, сохраняем текущее время и не обновляем
-    if (gameSession.status === 'paused') {
-      return;
+  // Если игра на паузе, сохраняем текущее время и не обновляем
+  if (gameSession.status === 'paused') {
+    if (gameSession.timer_duration) {
+      setTimeRemaining(gameSession.timer_duration);
     }
+    return;
+  }
 
-    // Таймер работает только если статус 'active'
-    if (gameSession.status !== 'active') {
-      setTimeRemaining(null);
-      return;
-    }
+  // Таймер работает только если статус 'active'
+  if (gameSession.status !== 'active') {
+    setTimeRemaining(null);
+    return;
+  }
 
-    const updateTimer = () => {
-      const startTime = new Date(gameSession.started_at!).getTime();
-      const now = Date.now();
-      const elapsed = Math.floor((now - startTime) / 1000);
-      const remaining = gameSession.timer_duration - elapsed;
+  const updateTimer = () => {
+    const startTime = new Date(gameSession.started_at!).getTime();
+    const now = Date.now();
+    const elapsed = Math.floor((now - startTime) / 1000);
+    const remaining = gameSession.timer_duration - elapsed;
 
-      if (remaining <= 0) {
-        setTimeRemaining(0);
-        if (isAdmin) {
-          supabase
-            .from('game_sessions')
-            .update({ status: 'finished' })
-            .eq('id', gameSession.id)
-            .then();
-        }
-      } else {
-        setTimeRemaining(remaining);
+    if (remaining <= 0) {
+      setTimeRemaining(0);
+      if (isAdmin) {
+        supabase
+          .from('game_sessions')
+          .update({ status: 'finished' })
+          .eq('id', gameSession.id)
+          .then();
       }
-    };
+    } else {
+      setTimeRemaining(remaining);
+    }
+  };
 
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
+  updateTimer();
+  const interval = setInterval(updateTimer, 1000);
 
-    return () => clearInterval(interval);
+  return () => clearInterval(interval);
   }, [gameSession?.status, gameSession?.started_at, gameSession?.timer_duration, isAdmin]);
 
   const updateMoney = async (amount: number) => {

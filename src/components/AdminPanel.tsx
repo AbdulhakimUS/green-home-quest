@@ -102,7 +102,7 @@ export const AdminPanel = () => {
                       variant="default" 
                       size="sm"
                       onClick={pauseGame}
-                      className="gap-2 bg-green-600 hover:bg-green-700"
+                      className="gap-2"
                     >
                       <PlayIcon className="w-4 h-4" />
                       Возобновить
