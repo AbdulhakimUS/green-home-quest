@@ -434,22 +434,33 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const pauseGame = async () => {
     if (!gameSession || !isAdmin) return;
 
-    const newStatus = gameSession.status === 'active' ? 'paused' : 'active';
+    const newStatus = gameSession.status === 'paused' ? 'active' : 'paused';
     
-    await supabase
-      .from('game_sessions')
-      .update({ 
-        status: newStatus,
-        // Если возобновляем, пересчитываем started_at с учетом прошедшего времени
-        started_at: newStatus === 'active' 
-          ? new Date(Date.now() - (gameSession.timer_duration - (timeRemaining || 0)) * 1000).toISOString()
-          : gameSession.started_at
-      })
-      .eq('id', gameSession.id);
+    if (newStatus === 'paused') {
+      // При паузе сохраняем текущее оставшееся время
+      await supabase
+        .from('game_sessions')
+        .update({ 
+          status: 'paused',
+          timer_duration: timeRemaining // Сохраняем оставшееся время
+        })
+        .eq('id', gameSession.id);
+    } else {
+      // При возобновлении устанавливаем новое started_at
+      await supabase
+        .from('game_sessions')
+        .update({ 
+          status: 'active',
+          started_at: new Date().toISOString() // Новое время старта с текущим оставшимся временем
+        })
+        .eq('id', gameSession.id);
+    }
 
     toast({
-      title: newStatus === 'active' ? "Игра возобновлена!" : "Игра на паузе",
-      description: newStatus === 'active' ? "Таймер продолжается" : "Таймер и прибыль остановлены",
+      title: newStatus === 'paused' ? "Игра на паузе" : "Игра возобновлена",
+      description: newStatus === 'paused' 
+        ? "Все таймеры остановлены" 
+        : "Игра продолжается",
     });
   };
 

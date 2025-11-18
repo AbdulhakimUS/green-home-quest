@@ -169,25 +169,22 @@ export const AdminPanel = () => {
           {gameSession?.status === 'finished' && (
             <Card className="mb-6 border-success bg-success/5">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5" />
-                  Игра завершена
-                </CardTitle>
-                <CardDescription>
-                  Вы можете перезапустить игру в этой же комнате
-                </CardDescription>
+                <div className="flex items-center justify-between gap-4">
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="w-5 h-5" />
+                    Игра завершена
+                  </CardTitle>
+                  <Button onClick={restartGame} size="lg" variant="default">
+                    <Play className="w-4 h-4 mr-2" />
+                    Начать заново
+                  </Button>
+                </div>
               </CardHeader>
-              <CardContent>
-                <Button onClick={restartGame} size="lg" variant="default" className="w-full">
-                  <Play className="w-4 h-4 mr-2" />
-                  Начать заново
-                </Button>
-              </CardContent>
             </Card>
           )}
 
 
-          <Card>
+          <Card className="mb-5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
