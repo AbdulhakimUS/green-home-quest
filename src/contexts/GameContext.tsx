@@ -18,7 +18,7 @@ interface Player {
 interface GameSession {
   id: string;
   code: string;
-  status: 'waiting' | 'active' | 'finished';
+  status: 'waiting' | 'active' | 'finished' | 'paused';
   timer_duration: number;
   started_at: string | null;
   active_events: any[];
@@ -75,7 +75,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         if (sessionData) {
           setGameSession({
             ...sessionData,
-            status: sessionData.status as 'waiting' | 'active' | 'finished',
+            status: sessionData.status as 'waiting' | 'active' | 'finished' | 'paused',
             active_events: (sessionData.active_events as any) || []
           });
           setGameCode(sessionData.code);
@@ -184,7 +184,18 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
   // Таймер
   useEffect(() => {
-    if (!gameSession || gameSession.status !== 'active' || !gameSession.started_at) {
+    if (!gameSession || !gameSession.started_at) {
+      setTimeRemaining(null);
+      return;
+    }
+
+    // Если игра на паузе, сохраняем текущее время и не обновляем
+    if (gameSession.status === 'paused') {
+      return;
+    }
+
+    // Таймер работает только если статус 'active'
+    if (gameSession.status !== 'active') {
       setTimeRemaining(null);
       return;
     }
@@ -240,10 +251,21 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const purchaseItem = async (item: ShopItem) => {
-    if (!player || !gameSession || gameSession.status !== 'active') {
+    if (!player || !gameSession) {
       toast({
         title: "Ошибка",
-        description: "Игра еще не началась или уже завершена",
+        description: "Игра еще не началась",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (gameSession.status !== 'active') {
+      toast({
+        title: "Ошибка",
+        description: gameSession.status === 'paused' 
+          ? "Игра на паузе. Дождитесь возобновления." 
+          : "Игра еще не началась или уже завершена",
         variant: "destructive"
       });
       return;
