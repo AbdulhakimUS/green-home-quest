@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
 import { CardType, ShopItem } from "@/types/game";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -394,7 +394,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const removePlayer = async () => {
+  const removePlayer = useCallback(async () => {
     if (!player) return;
 
     await supabase
@@ -406,7 +406,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('eco_session_id');
     
     setPlayer(null);
-  };
+  }, [player]);
 
   const logoutAdmin = () => {
     localStorage.removeItem('eco_session_id');
@@ -435,7 +435,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const pauseGame = async () => {
-    if (!gameSession || !isAdmin) return;
+    if (!gameSession || !isAdmin || timeRemaining === null) return;
 
     const newStatus = gameSession.status === 'paused' ? 'active' : 'paused';
     
@@ -448,23 +448,27 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           timer_duration: timeRemaining // Сохраняем оставшееся время
         })
         .eq('id', gameSession.id);
+        
+      toast({
+        title: "Игра на паузе",
+        description: "Все таймеры остановлены",
+      });
     } else {
       // При возобновлении устанавливаем новое started_at
       await supabase
         .from('game_sessions')
         .update({ 
           status: 'active',
-          started_at: new Date().toISOString() // Новое время старта с текущим оставшимся временем
+          started_at: new Date().toISOString(),
+          timer_duration: gameSession.timer_duration // Сохраняем оставшееся время
         })
         .eq('id', gameSession.id);
+        
+      toast({
+        title: "Игра возобновлена",
+        description: "Игра продолжается",
+      });
     }
-
-    toast({
-      title: newStatus === 'paused' ? "Игра на паузе" : "Игра возобновлена",
-      description: newStatus === 'paused' 
-        ? "Все таймеры остановлены" 
-        : "Игра продолжается",
-    });
   };
 
   const restartGame = async () => {
