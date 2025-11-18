@@ -13,7 +13,7 @@ import { Leaderboard } from "./Leaderboard";
 type ExtendedStatus = 'waiting' | 'active' | 'finished' | 'paused';
 
 export const AdminPanel = () => {
-  const { allPlayers, gameSession, startGame, endGame, pauseGame, timeRemaining, logoutAdmin } = useGame();
+  const { allPlayers, gameSession, startGame, endGame, pauseGame, restartGame, timeRemaining, logoutAdmin } = useGame();
   const [selectedPlayer, setSelectedPlayer] = useState<any | null>(null);
   const [timerMinutes, setTimerMinutes] = useState("30");
   const [showHistory, setShowHistory] = useState(false);
@@ -162,6 +162,26 @@ export const AdminPanel = () => {
                     Начать игру
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {gameSession?.status === 'finished' && (
+            <Card className="mb-6 border-success bg-success/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="w-5 h-5" />
+                  Игра завершена
+                </CardTitle>
+                <CardDescription>
+                  Вы можете перезапустить игру в этой же комнате
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={restartGame} size="lg" variant="default" className="w-full">
+                  <Play className="w-4 h-4 mr-2" />
+                  Начать заново
+                </Button>
               </CardContent>
             </Card>
           )}
