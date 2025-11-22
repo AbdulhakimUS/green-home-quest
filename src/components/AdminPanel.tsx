@@ -17,6 +17,7 @@ export const AdminPanel = () => {
   const [selectedPlayer, setSelectedPlayer] = useState<any | null>(null);
   const [timerMinutes, setTimerMinutes] = useState("30");
   const [showHistory, setShowHistory] = useState(false);
+  const [removedPlayers, setRemovedPlayers] = useState<Set<string>>(new Set());
 
   const isPlayerInactive = (player: any) => {
     if (!player.last_activity) return false;
@@ -28,9 +29,14 @@ export const AdminPanel = () => {
   const handleRemovePlayer = async (playerId: string, nickname: string) => {
     if (window.confirm(`Вы уверены, что хотите удалить игрока "${nickname}"?`)) {
       await removePlayerById(playerId);
+      setRemovedPlayers(prev => new Set(prev).add(playerId));
       setSelectedPlayer(null);
     }
   };
+
+  // Разделяем игроков на активных и удалённых
+  const activePlayers = allPlayers.filter(p => !removedPlayers.has(p.id));
+  const deletedPlayers = allPlayers.filter(p => removedPlayers.has(p.id));
 
   const sessionStatus = gameSession?.status as ExtendedStatus;
 
@@ -202,40 +208,83 @@ export const AdminPanel = () => {
               {allPlayers.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">Пока нет участников</p>
               ) : (
-                allPlayers.map((player) => {
-                  const inactive = isPlayerInactive(player);
-                  return (
-                  <Card
-                    key={player.id}
-                    className="cursor-pointer hover-scale"
-                    onClick={() => setSelectedPlayer(player)}
-                  >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <CircleDot 
-                            className={`w-3 h-3 ${inactive ? 'text-muted-foreground' : 'text-success'}`}
-                            fill="currentColor"
-                          />
-                          <CardTitle className="text-base">{player.nickname}</CardTitle>
+                <>
+                  {/* Активные игроки */}
+                  {activePlayers.map((player) => {
+                    const inactive = isPlayerInactive(player);
+                    return (
+                    <Card
+                      key={player.id}
+                      className="cursor-pointer hover-scale"
+                      onClick={() => setSelectedPlayer(player)}
+                    >
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <CircleDot 
+                              className={`w-3 h-3 ${inactive ? 'text-muted-foreground' : 'text-success'}`}
+                              fill="currentColor"
+                            />
+                            <CardTitle className="text-base">{player.nickname}</CardTitle>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <TrendingUp className="w-4 h-4" />
+                            Ур. {Math.round(player.house_level * 10) / 10}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <TrendingUp className="w-4 h-4" />
-                          Ур. {Math.round(player.house_level * 10) / 10}
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Баланс:</span>
+                          <span className="font-semibold flex items-center gap-1">
+                            <Coins className="w-4 h-4 text-warning" />
+                            {player.money}$
+                          </span>
                         </div>
+                      </CardContent>
+                    </Card>
+                  )})}
+                  
+                  {/* Удалённые игроки внизу списка */}
+                  {deletedPlayers.length > 0 && (
+                    <>
+                      <div className="border-t border-border my-4 pt-4">
+                        <p className="text-xs text-muted-foreground text-center mb-2">Удалённые игроки</p>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Баланс:</span>
-                        <span className="font-semibold flex items-center gap-1">
-                          <Coins className="w-4 h-4 text-warning" />
-                          {player.money}$
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )})
+                      {deletedPlayers.map((player) => (
+                        <Card
+                          key={player.id}
+                          className="opacity-50"
+                        >
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <CircleDot 
+                                  className="w-3 h-3 text-destructive"
+                                  fill="currentColor"
+                                />
+                                <CardTitle className="text-base line-through">{player.nickname}</CardTitle>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <TrendingUp className="w-4 h-4" />
+                                Ур. {Math.round(player.house_level * 10) / 10}
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">Баланс:</span>
+                              <span className="font-semibold flex items-center gap-1">
+                                <Coins className="w-4 h-4 text-warning" />
+                                {player.money}$
+                              </span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
