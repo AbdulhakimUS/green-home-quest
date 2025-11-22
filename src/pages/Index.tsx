@@ -81,20 +81,20 @@ const GameContent = () => {
 
       {/* Exit Confirmation Dialog */}
       {showExitConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card p-6 rounded-lg max-w-sm w-full space-y-4 animate-scale-in">
-            <h3 className="text-xl font-bold">Выйти из комнаты?</h3>
-            <p className="text-muted-foreground">Вы точно хотите выйти из игры? Ваш прогресс будет потерян.</p>
-            <div className="flex gap-3">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-card p-4 sm:p-6 rounded-lg max-w-[90vw] sm:max-w-sm w-full space-y-3 sm:space-y-4 animate-scale-in">
+            <h3 className="text-lg sm:text-xl font-bold">Выйти из комнаты?</h3>
+            <p className="text-sm sm:text-base text-muted-foreground">Вы точно хотите выйти из игры? Ваш прогресс будет потерян.</p>
+            <div className="flex gap-2 sm:gap-3">
               <button
                 onClick={() => setShowExitConfirm(false)}
-                className="flex-1 px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-md transition-colors"
+                className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base bg-secondary hover:bg-secondary/80 rounded-md transition-colors"
               >
                 Отмена
               </button>
               <button
                 onClick={handlePlayerExit}
-                className="flex-1 px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-md transition-colors"
+                className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-md transition-colors"
               >
                 Выйти
               </button>

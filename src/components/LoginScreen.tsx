@@ -281,39 +281,40 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/20 via-background to-accent/20 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6 animate-fade-in">
-        <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Home className="w-12 h-12 text-primary" />
-            <Leaf className="w-10 h-10 text-success" />
+    <div className="min-h-screen bg-gradient-to-br from-primary/20 via-background to-accent/20 flex items-center justify-center p-3 sm:p-4">
+      <div className="w-full max-w-sm sm:max-w-md space-y-4 sm:space-y-6 animate-fade-in">
+        <div className="text-center space-y-1.5 sm:space-y-2">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+            <Home className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
+            <Leaf className="w-8 h-8 sm:w-10 sm:h-10 text-success" />
           </div>
-          <h1 className="text-4xl font-bold text-primary">Эко Дом</h1>
-          <p className="text-muted-foreground">Создайте самый экологичный дом!</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-primary">Эко Дом</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Создайте самый экологичный дом!</p>
         </div>
 
         {!isAdmin ? (
           <Card className="border-2 shadow-lg">
-            <CardHeader>
-              <CardTitle>Присоединиться к игре</CardTitle>
-              <CardDescription>Введите 6-значный код игры и никнейм</CardDescription>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Присоединиться к игре</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Введите 6-значный код игры и никнейм</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
               <Input
                 placeholder="Код игры (6 цифр)"
                 value={gameCode}
                 onChange={(e) => setGameCode(e.target.value)}
-                className="text-center text-lg font-semibold"
+                className="text-center text-base sm:text-lg font-semibold"
                 maxLength={6}
               />
               <Input
                 placeholder="Ваш никнейм"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
+                className="text-sm sm:text-base"
               />
               <Button 
                 onClick={handlePlayerLogin} 
-                className="w-full" 
+                className="w-full text-sm sm:text-base" 
                 size="lg"
                 disabled={loading}
               >
@@ -322,7 +323,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
               <Button
                 variant="ghost"
                 onClick={() => setIsAdmin(true)}
-                className="w-full text-sm"
+                className="w-full text-xs sm:text-sm"
               >
                 Создать игру (админ)
               </Button>
@@ -330,25 +331,27 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           </Card>
         ) : !adminAuthenticated ? (
           <Card className="border-2 shadow-lg border-primary">
-            <CardHeader>
-              <CardTitle>Вход администратора</CardTitle>
-              <CardDescription>Войдите для управления игрой</CardDescription>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Вход администратора</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Войдите для управления игрой</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
               <Input
                 placeholder="Логин"
                 value={adminLogin}
                 onChange={(e) => setAdminLogin(e.target.value)}
+                className="text-sm sm:text-base"
               />
               <Input
                 type="password"
                 placeholder="Пароль"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
+                className="text-sm sm:text-base"
               />
               <Button 
                 onClick={handleAdminLogin} 
-                className="w-full" 
+                className="w-full text-sm sm:text-base" 
                 size="lg"
                 disabled={loading}
               >
@@ -357,7 +360,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
               <Button
                 variant="ghost"
                 onClick={() => setIsAdmin(false)}
-                className="w-full"
+                className="w-full text-xs sm:text-sm"
               >
                 Назад
               </Button>
@@ -365,23 +368,23 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           </Card>
         ) : (
           <Card className="border-2 shadow-lg border-primary">
-            <CardHeader>
-              <CardTitle>Управление игрой</CardTitle>
-              <CardDescription>Выберите действие</CardDescription>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Управление игрой</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Выберите действие</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
               {!adminChoice ? (
                 <>
                   <Button 
                     onClick={() => setAdminChoice('create')} 
-                    className="w-full" 
+                    className="w-full text-sm sm:text-base" 
                     size="lg"
                   >
                     Создать новую комнату
                   </Button>
                   <Button 
                     onClick={() => setAdminChoice('join')} 
-                    className="w-full" 
+                    className="w-full text-sm sm:text-base" 
                     size="lg"
                     variant="outline"
                   >
@@ -390,12 +393,12 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                 </>
               ) : adminChoice === 'create' ? (
                 <>
-                  <p className="text-sm text-muted-foreground text-center">
+                  <p className="text-xs sm:text-sm text-muted-foreground text-center">
                     Создать новую игровую комнату
                   </p>
                   <Button 
                     onClick={handleCreateRoom} 
-                    className="w-full" 
+                    className="w-full text-sm sm:text-base" 
                     size="lg"
                     disabled={loading}
                   >
@@ -404,7 +407,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                   <Button
                     variant="ghost"
                     onClick={() => setAdminChoice(null)}
-                    className="w-full"
+                    className="w-full text-xs sm:text-sm"
                   >
                     Назад
                   </Button>
@@ -415,12 +418,12 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                     placeholder="Код комнаты (6 цифр)"
                     value={joinCode}
                     onChange={(e) => setJoinCode(e.target.value)}
-                    className="text-center text-lg font-semibold"
+                    className="text-center text-base sm:text-lg font-semibold"
                     maxLength={6}
                   />
                   <Button 
                     onClick={handleJoinRoom} 
-                    className="w-full" 
+                    className="w-full text-sm sm:text-base" 
                     size="lg"
                     disabled={loading}
                   >
@@ -429,7 +432,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                   <Button
                     variant="ghost"
                     onClick={() => setAdminChoice(null)}
-                    className="w-full"
+                    className="w-full text-xs sm:text-sm"
                   >
                     Назад
                   </Button>
