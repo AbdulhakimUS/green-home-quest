@@ -108,7 +108,7 @@ export const ShopTab = () => {
                         Экология: 🌿 {item.ecology}/10
                       </div>
                       <div className="text-xs sm:text-sm text-primary font-semibold">
-                        💰 {(item.profitPerSecond * (level > 0 ? Math.pow(1.5, level - 1) * level : 1)).toFixed(1)}$/сек
+                        💰 {(item.profitPerSecond * (level > 0 ? Math.pow(1.5, level - 1) * level : 1)).toFixed(1).replace('.', ',')}$/сек
                       </div>
                     </div>
                     <Button
@@ -116,7 +116,7 @@ export const ShopTab = () => {
                         e.stopPropagation();
                         handlePurchase(item);
                       }}
-                      disabled={!canAfford || player.money === 0}
+                      disabled={!canAfford}
                       className="min-w-[100px] text-xs sm:text-sm w-full sm:w-auto"
                       size="sm"
                     >

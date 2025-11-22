@@ -350,14 +350,13 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Рассчитываем повышение уровня дома (добавляем бонус за уровень предмета)
-    const levelBonus = newLevel * 0.1; // Бонус 10% за каждый уровень
-    if (item.tier === 1) houseIncrease = 0.25 + levelBonus;
-    else if (item.tier === 2) houseIncrease = 0.5 + levelBonus;
-    else if (item.tier === 3) houseIncrease = 0.75 + levelBonus;
-    else if (item.tier === 4) houseIncrease = 1.0 + levelBonus;
-    else if (item.tier === 5) houseIncrease = 1.25 + levelBonus;
-    else houseIncrease = 1.5 + levelBonus;
+    // Рассчитываем повышение уровня дома
+    if (item.tier === 1) houseIncrease = 0.25;
+    else if (item.tier === 2) houseIncrease = 0.5;
+    else if (item.tier === 3) houseIncrease = 0.75;
+    else if (item.tier === 4) houseIncrease = 1.0;
+    else if (item.tier === 5) houseIncrease = 1.25;
+    else houseIncrease = 1.5;
 
     // Растения увеличивают кислород
     if (item.category === 'greenery') {
@@ -574,7 +573,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     await supabase
       .from('players')
       .update({
-        money: 10000,
+        money: 20000,
         house_level: 1,
         selected_card: null,
         inventory: [],

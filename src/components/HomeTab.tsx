@@ -4,11 +4,12 @@ import { Progress } from "@/components/ui/progress";
 import { Leaderboard } from "./Leaderboard";
 import { MissionsPanel } from "./MissionsPanel";
 import { EventsPanel } from "./EventsPanel";
+import { formatLevel } from "@/lib/formatters";
 
 export const HomeTab = () => {
   const { player } = useGame();
   
-  const displayLevel = player ? Math.round(player.house_level * 10) / 10 : 1;
+  const displayLevel = player ? formatLevel(player.house_level) : "1";
 
   // Получаем предметы по категориям
   const energyItems = player?.inventory.filter(i => i.category === "energy") || [];
@@ -71,7 +72,7 @@ export const HomeTab = () => {
               <div className="w-px h-3 sm:h-4 bg-border" />
               <div className="flex items-center gap-0.5 sm:gap-1">
                 <Wind className="w-3 h-3 sm:w-4 sm:h-4 text-success" />
-                <span className="text-[10px] sm:text-xs font-semibold">O₂ {player?.oxygen.toFixed(0) || 0}</span>
+                <span className="text-[10px] sm:text-xs font-semibold">O₂ {Math.round(player?.oxygen || 0)}</span>
               </div>
               <div className="w-px h-3 sm:h-4 bg-border" />
               <div className="flex items-center gap-0.5 sm:gap-1">
@@ -276,7 +277,7 @@ export const HomeTab = () => {
               <div className="text-xs sm:text-sm font-semibold">Кислород</div>
               <Progress value={Math.min((player?.oxygen || 0) / 100 * 100, 100)} className="h-1.5 sm:h-2 mt-1" />
             </div>
-            <div className="text-xs sm:text-sm font-bold">{player?.oxygen || 0}</div>
+            <div className="text-xs sm:text-sm font-bold">{Math.round(player?.oxygen || 0)}</div>
           </div>
         </div>
 
