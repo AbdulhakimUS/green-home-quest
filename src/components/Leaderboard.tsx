@@ -61,7 +61,7 @@ export const Leaderboard = () => {
                   <div>
                     <p className="font-semibold">{player.nickname}</p>
                     <p className="text-xs text-muted-foreground">
-                      Уровень дома: {player.house_level.toFixed(2)}
+                      Уровень дома: {Math.round(player.house_level * 10) / 10}
                     </p>
                   </div>
                 </div>

@@ -199,7 +199,7 @@ export const AdminPanel = () => {
                         <CardTitle className="text-base">{player.nickname}</CardTitle>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <TrendingUp className="w-4 h-4" />
-                          Ур. {player.house_level.toFixed(2)}
+                          Ур. {Math.round(player.house_level * 10) / 10}
                         </div>
                       </div>
                     </CardHeader>
@@ -255,7 +255,7 @@ export const AdminPanel = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-2xl font-bold">{selectedPlayer.house_level.toFixed(2)}/25</p>
+                    <p className="text-2xl font-bold">{Math.round(selectedPlayer.house_level * 10) / 10}/25</p>
                   </CardContent>
                 </Card>
               </div>
