@@ -139,12 +139,15 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
             toast({
               title: "Вы были исключены с игры",
               description: "Администратор удалил вас из игры",
-              variant: "destructive"
+              variant: "destructive",
+              duration: 5000
             });
             localStorage.removeItem('eco_player_id');
             localStorage.removeItem('eco_session_id');
             setPlayer(null);
             setGameSession(null);
+            setGameCode(null);
+            window.location.href = '/';
             return;
           }
           setPlayer(updatedPlayer);
@@ -164,7 +167,27 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           table: 'players',
           filter: `session_id=eq.${gameSession.id}`
         },
-        () => loadPlayers()
+        (payload) => {
+          // Если это DELETE и это текущий игрок - немедленно выбрасываем
+          if (payload.eventType === 'DELETE' && player && !isAdmin && payload.old.id === player.id) {
+            toast({
+              title: "Вы были исключены с игры",
+              description: "Администратор удалил вас из игры",
+              variant: "destructive",
+              duration: 5000
+            });
+            localStorage.removeItem('eco_player_id');
+            localStorage.removeItem('eco_session_id');
+            setPlayer(null);
+            setGameSession(null);
+            setGameCode(null);
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 100);
+            return;
+          }
+          loadPlayers();
+        }
       )
       .subscribe();
 
@@ -445,13 +468,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const removePlayerById = useCallback(async (playerId: string) => {
     if (!isAdmin) return;
 
-    // Удаляем историю покупок игрока
-    await supabase
-      .from('purchase_history')
-      .delete()
-      .eq('player_id', playerId);
-
-    // Удаляем игрока
+    // Удаляем игрока (история покупок удалится каскадно)
     const { error } = await supabase
       .from('players')
       .delete()
@@ -463,6 +480,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         description: "Игрок был исключен из игры",
       });
     } else {
+      console.error('Error removing player:', error);
       toast({
         title: "Ошибка",
         description: "Не удалось удалить игрока",
