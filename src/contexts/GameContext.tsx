@@ -42,6 +42,7 @@ interface GameContextType {
   restartGame: () => Promise<void>;
   claimMissionReward: (missionId: string, reward: number) => Promise<void>;
   removePlayer: () => Promise<void>;
+  removePlayerById: (playerId: string) => Promise<void>;
   logoutAdmin: () => void;
   setPlayer: (player: Player | null) => void;
   setIsAdmin: (isAdmin: boolean) => void;
@@ -332,7 +333,17 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     const newMoney = player.money - price;
     const newOxygen = player.oxygen + oxygenIncrease;
 
-    await supabase
+    // Оптимистичное обновление
+    setPlayer({
+      ...player,
+      money: newMoney,
+      house_level: newHouseLevel,
+      oxygen: newOxygen,
+      inventory: updatedInventory
+    });
+
+    // Транзакционное обновление в БД
+    const { error: updateError } = await supabase
       .from('players')
       .update({
         money: newMoney,
@@ -342,7 +353,18 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       })
       .eq('id', player.id);
 
-    await supabase
+    if (updateError) {
+      // Откат при ошибке
+      setPlayer(player);
+      toast({
+        title: "Ошибка покупки",
+        description: "Не удалось выполнить покупку. Попробуйте еще раз.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const { error: historyError } = await supabase
       .from('purchase_history')
       .insert({
         player_id: player.id,
@@ -407,6 +429,27 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     
     setPlayer(null);
   }, [player]);
+
+  const removePlayerById = useCallback(async (playerId: string) => {
+    if (!isAdmin) return;
+
+    // Удаляем историю покупок игрока
+    await supabase
+      .from('purchase_history')
+      .delete()
+      .eq('player_id', playerId);
+
+    // Удаляем игрока
+    await supabase
+      .from('players')
+      .delete()
+      .eq('id', playerId);
+
+    toast({
+      title: "Игрок удален",
+      description: "Игрок был исключен из игры",
+    });
+  }, [isAdmin]);
 
   const logoutAdmin = () => {
     localStorage.removeItem('eco_session_id');
@@ -573,6 +616,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         restartGame,
         claimMissionReward,
         removePlayer,
+        removePlayerById,
         logoutAdmin,
         setPlayer,
         setIsAdmin,

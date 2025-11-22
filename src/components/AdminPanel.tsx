@@ -1,4 +1,4 @@
-import { Users, TrendingUp, Coins, Play, Clock, History, Trophy, LogOut, Pause, PlayIcon } from "lucide-react";
+import { Users, TrendingUp, Coins, Play, Clock, History, Trophy, LogOut, Pause, PlayIcon, Trash2, CircleDot } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGame } from "@/contexts/GameContext";
 import { useState } from "react";
@@ -13,10 +13,24 @@ import { Leaderboard } from "./Leaderboard";
 type ExtendedStatus = 'waiting' | 'active' | 'finished' | 'paused';
 
 export const AdminPanel = () => {
-  const { allPlayers, gameSession, startGame, endGame, pauseGame, restartGame, timeRemaining, logoutAdmin } = useGame();
+  const { allPlayers, gameSession, startGame, endGame, pauseGame, restartGame, timeRemaining, logoutAdmin, removePlayerById } = useGame();
   const [selectedPlayer, setSelectedPlayer] = useState<any | null>(null);
   const [timerMinutes, setTimerMinutes] = useState("30");
   const [showHistory, setShowHistory] = useState(false);
+
+  const isPlayerInactive = (player: any) => {
+    if (!player.last_activity) return false;
+    const lastActivity = new Date(player.last_activity).getTime();
+    const now = Date.now();
+    return (now - lastActivity) > 60000; // Неактивен более 1 минуты
+  };
+
+  const handleRemovePlayer = async (playerId: string, nickname: string) => {
+    if (window.confirm(`Вы уверены, что хотите удалить игрока "${nickname}"?`)) {
+      await removePlayerById(playerId);
+      setSelectedPlayer(null);
+    }
+  };
 
   const sessionStatus = gameSession?.status as ExtendedStatus;
 
@@ -188,7 +202,9 @@ export const AdminPanel = () => {
               {allPlayers.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">Пока нет участников</p>
               ) : (
-                allPlayers.map((player) => (
+                allPlayers.map((player) => {
+                  const inactive = isPlayerInactive(player);
+                  return (
                   <Card
                     key={player.id}
                     className="cursor-pointer hover-scale"
@@ -196,7 +212,13 @@ export const AdminPanel = () => {
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-base">{player.nickname}</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <CircleDot 
+                            className={`w-3 h-3 ${inactive ? 'text-muted-foreground' : 'text-success'}`}
+                            fill="currentColor"
+                          />
+                          <CardTitle className="text-base">{player.nickname}</CardTitle>
+                        </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <TrendingUp className="w-4 h-4" />
                           Ур. {Math.round(player.house_level * 10) / 10}
@@ -213,7 +235,7 @@ export const AdminPanel = () => {
                       </div>
                     </CardContent>
                   </Card>
-                ))
+                )})
               )}
             </CardContent>
           </Card>
@@ -267,6 +289,15 @@ export const AdminPanel = () => {
               >
                 <History className="w-4 h-4 mr-2" />
                 История покупок
+              </Button>
+
+              <Button 
+                onClick={() => handleRemovePlayer(selectedPlayer.id, selectedPlayer.nickname)}
+                className="w-full"
+                variant="destructive"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Удалить игрока
               </Button>
 
               <Card>
