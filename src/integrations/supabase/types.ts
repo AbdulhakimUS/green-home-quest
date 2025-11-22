@@ -21,6 +21,7 @@ export type Database = {
           code: string
           created_at: string | null
           id: string
+          initial_balance: number | null
           started_at: string | null
           status: string
           timer_duration: number | null
@@ -32,6 +33,7 @@ export type Database = {
           code: string
           created_at?: string | null
           id?: string
+          initial_balance?: number | null
           started_at?: string | null
           status?: string
           timer_duration?: number | null
@@ -43,6 +45,7 @@ export type Database = {
           code?: string
           created_at?: string | null
           id?: string
+          initial_balance?: number | null
           started_at?: string | null
           status?: string
           timer_duration?: number | null

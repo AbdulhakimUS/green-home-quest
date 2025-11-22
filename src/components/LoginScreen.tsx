@@ -20,6 +20,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [adminLogin, setAdminLogin] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [initialBalance, setInitialBalance] = useState("20000");
 
   // Автоматически вставляем код из URL параметра и автовозврат после F5
   useEffect(() => {
@@ -142,7 +143,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       .insert({
         session_id: session.id,
         nickname,
-        money: 10000,
+        money: session.initial_balance || 20000,
         house_level: 1,
         selected_card: null,
         inventory: []
@@ -198,6 +199,16 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   };
 
   const handleCreateRoom = async () => {
+    const balance = parseInt(initialBalance);
+    if (isNaN(balance) || balance <= 0) {
+      toast({
+        title: "Ошибка",
+        description: "Введите корректный начальный баланс",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
 
     console.log('🎲 Generating game code...');
@@ -210,7 +221,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       .insert({
         code: newGameCode,
         status: 'waiting',
-        timer_duration: 1800
+        timer_duration: 1800,
+        initial_balance: balance
       })
       .select()
       .single();
@@ -396,6 +408,17 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                   <p className="text-xs sm:text-sm text-muted-foreground text-center">
                     Создать новую игровую комнату
                   </p>
+                  <div>
+                    <label className="text-xs sm:text-sm text-muted-foreground">Начальный баланс игроков ($)</label>
+                    <Input
+                      type="number"
+                      value={initialBalance}
+                      onChange={(e) => setInitialBalance(e.target.value)}
+                      min="1000"
+                      placeholder="20000"
+                      className="mt-1 text-center text-base sm:text-lg font-semibold"
+                    />
+                  </div>
                   <Button 
                     onClick={handleCreateRoom} 
                     className="w-full text-sm sm:text-base" 
