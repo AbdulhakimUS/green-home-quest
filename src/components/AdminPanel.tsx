@@ -1,13 +1,14 @@
 import { Users, TrendingUp, Coins, Play, Clock, History, Trophy, LogOut, Pause, PlayIcon, Trash2, CircleDot } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGame } from "@/contexts/GameContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { PurchaseHistory } from "./PurchaseHistory";
 import { Leaderboard } from "./Leaderboard";
+import { supabase } from "@/integrations/supabase/client";
 
 // Extend the game session type to include pause status
 type ExtendedStatus = 'waiting' | 'active' | 'finished' | 'paused';
@@ -18,6 +19,14 @@ export const AdminPanel = () => {
   const [timerMinutes, setTimerMinutes] = useState("30");
   const [showHistory, setShowHistory] = useState(false);
   const [removedPlayers, setRemovedPlayers] = useState<Set<string>>(new Set());
+  const [initialBalance, setInitialBalance] = useState(gameSession?.initial_balance?.toString() || "20000");
+
+  // Синхронизируем initialBalance с gameSession
+  useEffect(() => {
+    if (gameSession?.initial_balance) {
+      setInitialBalance(gameSession.initial_balance.toString());
+    }
+  }, [gameSession?.initial_balance]);
 
   const isPlayerInactive = (player: any) => {
     if (!player.last_activity) return false;
@@ -40,8 +49,9 @@ export const AdminPanel = () => {
 
   const sessionStatus = gameSession?.status as ExtendedStatus;
 
-  const handleStartGame = () => {
+  const handleStartGame = async () => {
     const minutes = parseInt(timerMinutes);
+    const balance = parseInt(initialBalance);
     if (isNaN(minutes) || minutes <= 0) {
       toast({
         title: "Ошибка",
@@ -50,6 +60,23 @@ export const AdminPanel = () => {
       });
       return;
     }
+    if (isNaN(balance) || balance <= 0) {
+      toast({
+        title: "Ошибка",
+        description: "Введите корректный начальный баланс",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Обновляем начальный баланс в сессии
+    if (gameSession) {
+      await supabase
+        .from('game_sessions')
+        .update({ initial_balance: balance })
+        .eq('id', gameSession.id);
+    }
+
     startGame(minutes);
   };
 
@@ -178,11 +205,22 @@ export const AdminPanel = () => {
                       className="mt-1"
                     />
                   </div>
-                  <Button onClick={handleStartGame} size="sm" className="sm:mt-6 w-full sm:w-auto">
-                    <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                    <span className="text-xs sm:text-sm">Начать игру</span>
-                  </Button>
+                  <div className="flex-1">
+                    <label className="text-xs sm:text-sm text-muted-foreground">Начальный баланс ($)</label>
+                    <Input
+                      type="number"
+                      value={initialBalance}
+                      onChange={(e) => setInitialBalance(e.target.value)}
+                      min="1000"
+                      placeholder="20000"
+                      className="mt-1"
+                    />
+                  </div>
                 </div>
+                <Button onClick={handleStartGame} size="sm" className="w-full">
+                  <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="text-xs sm:text-sm">Начать игру</span>
+                </Button>
               </CardContent>
             </Card>
           )}

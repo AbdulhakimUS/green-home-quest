@@ -23,6 +23,7 @@ interface GameSession {
   started_at: string | null;
   active_events: any[];
   admin_reconnect_allowed: boolean;
+  initial_balance: number;
 }
 
 interface GameContextType {
@@ -570,10 +571,11 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     }
 
     // Сбрасываем всех игроков к начальным значениям
+    const initialBalance = gameSession.initial_balance || 20000;
     await supabase
       .from('players')
       .update({
-        money: 20000,
+        money: initialBalance,
         house_level: 1,
         selected_card: null,
         inventory: [],
