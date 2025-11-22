@@ -3,11 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useGame } from "@/contexts/GameContext";
 import { CardType } from "@/types/game";
 import { toast } from "sonner";
+import { useMemo, useCallback } from "react";
 
 export const CardsTab = () => {
   const { selectCard, player } = useGame();
 
-  const cards = [
+  const cards = useMemo(() => [
     {
       type: "energy" as CardType,
       icon: Zap,
@@ -29,12 +30,12 @@ export const CardsTab = () => {
       description: "Деревья, кусты и растения для экологии",
       color: "from-success/20 to-success/5 border-success/30"
     }
-  ];
+  ], []);
 
-  const handleCardSelect = (cardType: CardType) => {
+  const handleCardSelect = useCallback((cardType: CardType) => {
     selectCard(cardType);
     toast.success(`Выбрана карта: ${cards.find(c => c.type === cardType)?.title}`);
-  };
+  }, [selectCard, cards]);
 
   return (
     <div className="space-y-6 animate-fade-in">

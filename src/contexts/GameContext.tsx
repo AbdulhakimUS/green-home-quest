@@ -131,11 +131,23 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         }));
         setAllPlayers(players);
         
-        if (player) {
+        // Проверяем, был ли удален текущий игрок
+        if (player && !isAdmin) {
           const updatedPlayer = players.find(p => p.id === player.id);
-          if (updatedPlayer) {
-            setPlayer(updatedPlayer);
+          if (!updatedPlayer) {
+            // Игрок был удален админом
+            toast({
+              title: "Вы были исключены с игры",
+              description: "Администратор удалил вас из игры",
+              variant: "destructive"
+            });
+            localStorage.removeItem('eco_player_id');
+            localStorage.removeItem('eco_session_id');
+            setPlayer(null);
+            setGameSession(null);
+            return;
           }
+          setPlayer(updatedPlayer);
         }
       }
     };
@@ -159,7 +171,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [gameSession?.id]);
+  }, [gameSession?.id, player?.id, isAdmin]);
 
   // Подписка на изменения сессии
   useEffect(() => {
@@ -440,15 +452,23 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       .eq('player_id', playerId);
 
     // Удаляем игрока
-    await supabase
+    const { error } = await supabase
       .from('players')
       .delete()
       .eq('id', playerId);
 
-    toast({
-      title: "Игрок удален",
-      description: "Игрок был исключен из игры",
-    });
+    if (!error) {
+      toast({
+        title: "Игрок удален",
+        description: "Игрок был исключен из игры",
+      });
+    } else {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось удалить игрока",
+        variant: "destructive"
+      });
+    }
   }, [isAdmin]);
 
   const logoutAdmin = () => {
