@@ -541,7 +541,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         .update({ 
           status: 'active',
           started_at: new Date().toISOString(),
-          timer_duration: gameSession.timer_duration // Сохраняем оставшееся время
+          timer_duration: timeRemaining // Используем текущее оставшееся время
         })
         .eq('id', gameSession.id);
         
