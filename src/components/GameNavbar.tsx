@@ -5,6 +5,7 @@ import { useGame } from "@/contexts/GameContext";
 import { Progress } from "@/components/ui/progress";
 import { useState, useEffect } from "react";
 import { PurchaseHistory } from "./PurchaseHistory";
+import { formatLevel, formatMoney } from "@/lib/formatters";
 
 interface GameNavbarProps {
   activeTab: string;
@@ -51,7 +52,7 @@ export const GameNavbar = ({ activeTab, onTabChange, onExitClick }: GameNavbarPr
   };
 
   const houseProgress = player ? ((player.house_level / 25) * 100) : 0;
-  const displayLevel = player ? Math.round(player.house_level * 10) / 10 : 0;
+  const displayLevel = player ? formatLevel(player.house_level) : "0";
 
   return (
     <>
@@ -135,10 +136,10 @@ export const GameNavbar = ({ activeTab, onTabChange, onExitClick }: GameNavbarPr
             <div className="flex flex-col items-end gap-1 min-w-0">
               <div className="flex items-center gap-2">
                 <Coins className="w-4 h-4 sm:w-5 sm:h-5 text-warning flex-shrink-0" />
-                <span className="text-sm sm:text-base font-semibold truncate">{player?.money.toFixed(0) || 0}$</span>
+                <span className="text-sm sm:text-base font-semibold truncate">{formatMoney(player?.money || 0)}$</span>
               </div>
               <div className="text-xs sm:text-sm text-success whitespace-nowrap">
-                {currentIncome.toFixed(1)}$/сек
+                {formatLevel(currentIncome)}$/сек
               </div>
             </div>
           </div>
