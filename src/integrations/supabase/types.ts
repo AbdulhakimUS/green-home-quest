@@ -57,6 +57,7 @@ export type Database = {
           house_level: number | null
           id: string
           inventory: Json | null
+          last_activity: string | null
           money: number | null
           nickname: string
           oxygen: number | null
@@ -70,6 +71,7 @@ export type Database = {
           house_level?: number | null
           id?: string
           inventory?: Json | null
+          last_activity?: string | null
           money?: number | null
           nickname: string
           oxygen?: number | null
@@ -83,6 +85,7 @@ export type Database = {
           house_level?: number | null
           id?: string
           inventory?: Json | null
+          last_activity?: string | null
           money?: number | null
           nickname?: string
           oxygen?: number | null
@@ -149,6 +152,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_game_data: {
+        Args: never
+        Returns: {
+          deleted_history: number
+          deleted_players: number
+          deleted_sessions: number
+        }[]
+      }
       generate_game_code: { Args: never; Returns: string }
     }
     Enums: {
