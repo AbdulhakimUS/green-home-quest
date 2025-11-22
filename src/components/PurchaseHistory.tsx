@@ -85,46 +85,46 @@ export const PurchaseHistory = ({ playerId, open, onOpenChange }: PurchaseHistor
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[85vh] sm:max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ShoppingBag className="w-5 h-5" />
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
             История покупок
           </DialogTitle>
         </DialogHeader>
         
-        <ScrollArea className="h-[400px] pr-4">
+        <ScrollArea className="h-[350px] sm:h-[400px] pr-2 sm:pr-4">
           {loading ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm sm:text-base">
               Загрузка...
             </div>
           ) : purchases.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm sm:text-base">
               Пока нет покупок
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {purchases.map((purchase, index) => (
                 <div
                   key={purchase.id}
-                  className="bg-card border border-border rounded-lg p-4 space-y-2 animate-fade-in"
+                  className="bg-card border border-border rounded-lg p-3 sm:p-4 space-y-1.5 sm:space-y-2 animate-fade-in"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="font-medium">{purchase.item_name}</div>
-                      <div className={`text-sm ${getCategoryColor(purchase.category)}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-sm sm:text-base truncate">{purchase.item_name}</div>
+                      <div className={`text-xs sm:text-sm ${getCategoryColor(purchase.category)}`}>
                         {getCategoryLabel(purchase.category)} • Уровень {purchase.level}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-bold text-lg">${purchase.price}</div>
-                      <div className="text-xs text-muted-foreground">
+                    <div className="text-right flex-shrink-0">
+                      <div className="font-bold text-base sm:text-lg">${purchase.price}</div>
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">
                         Уровень {purchase.tier}
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">
                     {new Date(purchase.purchased_at).toLocaleString('ru-RU', {
                       day: '2-digit',
                       month: '2-digit',
