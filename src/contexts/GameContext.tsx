@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback, useMemo } from "react";
 import { CardType, ShopItem } from "@/types/game";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -267,20 +267,28 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   return () => clearInterval(interval);
   }, [gameSession?.status, gameSession?.started_at, gameSession?.timer_duration, isAdmin]);
 
-  const updateMoney = async (amount: number) => {
+  const updateMoney = useCallback(async (amount: number) => {
     if (!player) return;
     
     const newMoney = player.money + amount;
     
     // Обновляем локальное состояние немедленно
-    setPlayer({ ...player, money: newMoney });
-    
-    // Обновляем в базе данных
-    await supabase
-      .from('players')
-      .update({ money: newMoney })
-      .eq('id', player.id);
-  };
+    setPlayer(prev => prev ? { ...prev, money: newMoney } : null);
+  }, [player?.id]);
+
+  // Батчинг обновлений денег в БД (каждые 5 секунд)
+  useEffect(() => {
+    if (!player || !gameSession || gameSession.status !== 'active') return;
+
+    const interval = setInterval(async () => {
+      await supabase
+        .from('players')
+        .update({ money: player.money })
+        .eq('id', player.id);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [player?.id, player?.money, gameSession?.status]);
 
   const selectCard = async (card: CardType) => {
     if (!player) return;
@@ -307,16 +315,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         description: gameSession.status === 'paused' 
           ? "Игра на паузе. Дождитесь возобновления." 
           : "Игра еще не началась или уже завершена",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Проверка уровня дома для дорогих предметов
-    if (item.basePrice >= 1500 && player.house_level < 3) {
-      toast({
-        title: "Требуется уровень дома",
-        description: "Для покупки этого предмета нужен уровень дома 3 или выше",
         variant: "destructive"
       });
       return;
@@ -378,17 +376,38 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     });
 
     // Транзакционное обновление в БД
-    const { error: updateError } = await supabase
-      .from('players')
-      .update({
-        money: newMoney,
-        house_level: newHouseLevel,
-        oxygen: newOxygen,
-        inventory: updatedInventory as any
-      })
-      .eq('id', player.id);
+    try {
+      const { error: updateError } = await supabase
+        .from('players')
+        .update({
+          money: newMoney,
+          house_level: newHouseLevel,
+          oxygen: newOxygen,
+          inventory: updatedInventory as any
+        })
+        .eq('id', player.id);
 
-    if (updateError) {
+      if (updateError) throw updateError;
+
+      // История покупок без ожидания
+      supabase
+        .from('purchase_history')
+        .insert({
+          player_id: player.id,
+          item_id: item.id,
+          item_name: item.name,
+          category: item.category,
+          tier: item.tier,
+          level: newLevel,
+          price: price
+        })
+        .then();
+
+      toast({
+        title: "Покупка успешна!",
+        description: `${item.name} (Уровень ${newLevel})`,
+      });
+    } catch (error) {
       // Откат при ошибке
       setPlayer(player);
       toast({
@@ -396,25 +415,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         description: "Не удалось выполнить покупку. Попробуйте еще раз.",
         variant: "destructive"
       });
-      return;
     }
-
-    const { error: historyError } = await supabase
-      .from('purchase_history')
-      .insert({
-        player_id: player.id,
-        item_id: item.id,
-        item_name: item.name,
-        category: item.category,
-        tier: item.tier,
-        level: newLevel,
-        price: price
-      });
-
-    toast({
-      title: "Покупка успешна!",
-      description: `${item.name} (Уровень ${newLevel})`,
-    });
   };
 
   const endGame = async () => {
@@ -600,41 +601,29 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // Система прибыли (стабильная каждую секунду)
+  // Система прибыли (стабильная каждую секунду) с мемоизацией
+  const totalProfit = useMemo(() => {
+    if (!player) return 0;
+    return player.inventory.reduce((sum, item) => {
+      const levelMultiplier = Math.pow(1.5, item.level - 1);
+      return sum + item.profitPerSecond * levelMultiplier * item.level;
+    }, 0);
+  }, [player?.inventory]);
+
   useEffect(() => {
-    if (!player || !gameSession || gameSession.status !== 'active') return;
+    if (!player || !gameSession || gameSession.status !== 'active' || totalProfit === 0) return;
 
-    const calculateProfit = () => {
-      let totalProfit = 0;
-      player.inventory.forEach(item => {
-        const levelMultiplier = Math.pow(1.5, item.level - 1);
-        totalProfit += item.profitPerSecond * levelMultiplier * item.level;
-      });
-      return totalProfit;
-    };
-
-    // Стабильный интервал 1 секунда
     const interval = setInterval(() => {
-      const profit = calculateProfit();
-      if (profit > 0) {
-        updateMoney(profit);
-      }
+      updateMoney(totalProfit);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [player?.id, player?.inventory, gameSession?.status]);
+  }, [player?.id, totalProfit, gameSession?.status]);
 
   // Вычисление текущего дохода
   useEffect(() => {
-    if (!player) return;
-    
-    let totalProfit = 0;
-    player.inventory.forEach(item => {
-      const levelMultiplier = Math.pow(1.5, item.level - 1);
-      totalProfit += item.profitPerSecond * levelMultiplier * item.level;
-    });
     setCurrentIncome(totalProfit);
-  }, [player?.inventory]);
+  }, [totalProfit]);
 
   return (
     <GameContext.Provider

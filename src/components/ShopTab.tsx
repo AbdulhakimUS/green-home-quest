@@ -26,21 +26,20 @@ export const ShopTab = () => {
 
   const items = shopItems[player.selected_card];
 
-  const handlePurchase = (item: ShopItem) => {
+  const handlePurchase = async (item: ShopItem) => {
     const existingItem = player.inventory.find(
       i => i.id === item.id && i.category === item.category
     );
     
     const currentLevel = existingItem ? existingItem.level : 0;
-    const cost = Math.floor(item.basePrice * Math.pow(1.3, currentLevel));
+    const cost = Math.floor(item.basePrice * Math.pow(1.5, currentLevel));
 
     if (player.money < cost) {
       toast.error("Недостаточно средств!");
       return;
     }
 
-    purchaseItem(item);
-    toast.success(`${item.name} ${currentLevel > 0 ? `улучшен до уровня ${currentLevel + 1}` : "куплен"}!`);
+    await purchaseItem(item);
   };
 
   const getCost = (item: ShopItem) => {
@@ -48,7 +47,7 @@ export const ShopTab = () => {
       i => i.id === item.id && i.category === item.category
     );
     const currentLevel = existingItem ? existingItem.level : 0;
-    return Math.floor(item.basePrice * Math.pow(1.3, currentLevel));
+    return Math.floor(item.basePrice * Math.pow(1.5, currentLevel));
   };
 
   const getLevel = (item: ShopItem) => {
