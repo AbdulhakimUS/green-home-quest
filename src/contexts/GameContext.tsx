@@ -328,8 +328,11 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    // Получаем свежие данные игрока из состояния
+    const currentPlayer = player;
+
     // Проверка уровня дома для дорогих предметов
-    if (item.basePrice >= 1500 && player.house_level < 3) {
+    if (item.basePrice >= 1500 && currentPlayer.house_level < 3) {
       toast({
         title: "Требуется уровень дома",
         description: "Для покупки этого предмета нужен уровень дома 3 или выше",
@@ -338,7 +341,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const existingItem = player.inventory.find(i => i.id === item.id);
+    const existingItem = currentPlayer.inventory.find(i => i.id === item.id);
     
     let updatedInventory: ShopItem[];
     let price: number;
@@ -349,19 +352,19 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     if (existingItem) {
       newLevel = existingItem.level + 1;
       price = Math.floor(item.basePrice * Math.pow(1.5, newLevel - 1));
-      updatedInventory = player.inventory.map(i =>
+      updatedInventory = currentPlayer.inventory.map(i =>
         i.id === item.id ? { ...i, level: newLevel } : i
       );
     } else {
       newLevel = 1;
       price = item.basePrice;
-      updatedInventory = [...player.inventory, { ...item, level: 1 }];
+      updatedInventory = [...currentPlayer.inventory, { ...item, level: 1 }];
     }
 
-    if (player.money < price) {
+    if (currentPlayer.money < price) {
       toast({
         title: "Недостаточно средств",
-        description: `Нужно еще $${price - player.money}`,
+        description: `Нужно еще $${price - currentPlayer.money}`,
         variant: "destructive"
       });
       return;
@@ -380,18 +383,19 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       oxygenIncrease = item.tier * 2;
     }
 
-    const newHouseLevel = Math.min(25, player.house_level + houseIncrease);
-    const newMoney = player.money - price;
-    const newOxygen = player.oxygen + oxygenIncrease;
+    const newHouseLevel = Math.min(25, currentPlayer.house_level + houseIncrease);
+    const newMoney = currentPlayer.money - price;
+    const newOxygen = currentPlayer.oxygen + oxygenIncrease;
 
     // Оптимистичное обновление
-    setPlayer({
-      ...player,
+    const updatedPlayer = {
+      ...currentPlayer,
       money: newMoney,
       house_level: newHouseLevel,
       oxygen: newOxygen,
       inventory: updatedInventory
-    });
+    };
+    setPlayer(updatedPlayer);
 
     // Транзакционное обновление в БД
     try {
@@ -403,7 +407,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           oxygen: newOxygen,
           inventory: updatedInventory as any
         })
-        .eq('id', player.id);
+        .eq('id', currentPlayer.id);
 
       if (updateError) throw updateError;
 
@@ -411,7 +415,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       supabase
         .from('purchase_history')
         .insert({
-          player_id: player.id,
+          player_id: currentPlayer.id,
           item_id: item.id,
           item_name: item.name,
           category: item.category,
@@ -426,8 +430,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         description: `${item.name} (Уровень ${newLevel})`,
       });
     } catch (error) {
-      // Откат при ошибке
-      setPlayer(player);
+      // Откат при ошибке - возвращаем предыдущее состояние
+      setPlayer(currentPlayer);
       toast({
         title: "Ошибка покупки",
         description: "Не удалось выполнить покупку. Попробуйте еще раз.",
@@ -451,23 +455,64 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const claimMissionReward = async (missionId: string, reward: number) => {
-    if (!player) return;
+    if (!player || !gameSession) return;
+
+    // Проверка статуса игры
+    if (gameSession.status !== 'active') {
+      toast({
+        title: "Ошибка",
+        description: gameSession.status === 'paused' 
+          ? "Игра на паузе. Дождитесь возобновления." 
+          : "Игра еще не началась или уже завершена",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Проверка что миссия не выполнена
+    if (player.completed_missions.includes(missionId)) {
+      toast({
+        title: "Ошибка",
+        description: "Миссия уже выполнена",
+        variant: "destructive"
+      });
+      return;
+    }
 
     const updatedMissions = [...player.completed_missions, missionId];
     const newMoney = player.money + reward;
 
-    await supabase
-      .from('players')
-      .update({
-        completed_missions: updatedMissions as any,
-        money: newMoney
-      })
-      .eq('id', player.id);
+    // Оптимистичное обновление
+    setPlayer(prev => prev ? {
+      ...prev,
+      completed_missions: updatedMissions,
+      money: newMoney
+    } : null);
 
-    toast({
-      title: "Миссия выполнена!",
-      description: `Получено: $${reward.toLocaleString()}`,
-    });
+    try {
+      const { error } = await supabase
+        .from('players')
+        .update({
+          completed_missions: updatedMissions as any,
+          money: newMoney
+        })
+        .eq('id', player.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Миссия выполнена!",
+        description: `Получено: $${reward.toLocaleString()}`,
+      });
+    } catch (error) {
+      // Откат при ошибке
+      setPlayer(player);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось получить награду. Попробуйте еще раз.",
+        variant: "destructive"
+      });
+    }
   };
 
   const removePlayer = useCallback(async () => {
@@ -539,13 +584,16 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
     const newStatus = gameSession.status === 'paused' ? 'active' : 'paused';
     
+    // Оптимистично обновляем локальное состояние
+    setGameSession(prev => prev ? { ...prev, status: newStatus, timer_duration: timeRemaining } : null);
+    
     if (newStatus === 'paused') {
       // При паузе сохраняем текущее оставшееся время
       await supabase
         .from('game_sessions')
         .update({ 
           status: 'paused',
-          timer_duration: timeRemaining // Сохраняем оставшееся время
+          timer_duration: timeRemaining
         })
         .eq('id', gameSession.id);
         
@@ -560,7 +608,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         .update({ 
           status: 'active',
           started_at: new Date().toISOString(),
-          timer_duration: timeRemaining // Используем текущее оставшееся время
+          timer_duration: timeRemaining
         })
         .eq('id', gameSession.id);
         
@@ -629,14 +677,17 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   }, [player?.inventory]);
 
   useEffect(() => {
-    if (!player || !gameSession || gameSession.status !== 'active' || totalProfit === 0) return;
+    // Начисление прибыли только если игра активна (не на паузе, не завершена)
+    if (!player || !gameSession || gameSession.status !== 'active' || totalProfit === 0) {
+      return;
+    }
 
     const interval = setInterval(() => {
       updateMoney(totalProfit);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [player?.id, totalProfit, gameSession?.status]);
+  }, [player?.id, totalProfit, gameSession?.status, updateMoney]);
 
   // Вычисление текущего дохода
   useEffect(() => {
