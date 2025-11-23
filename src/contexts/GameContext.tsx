@@ -270,13 +270,21 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const updateMoney = useCallback(async (amount: number) => {
     if (!player) return;
     
-    const newMoney = player.money + amount;
+    const newMoney = Math.max(0, player.money + amount);
     
     // Обновляем локальное состояние немедленно
     setPlayer(prev => prev ? { ...prev, money: newMoney } : null);
+    
+    // Немедленно обновляем в БД для критических операций (покупки, миссии)
+    if (Math.abs(amount) > 10) {
+      await supabase
+        .from('players')
+        .update({ money: newMoney })
+        .eq('id', player.id);
+    }
   }, [player?.id]);
 
-  // Батчинг обновлений денег в БД (каждые 5 секунд)
+  // Батчинг обновлений денег в БД для мелких начислений (пассивный доход)
   useEffect(() => {
     if (!player || !gameSession || gameSession.status !== 'active') return;
 
@@ -315,6 +323,16 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         description: gameSession.status === 'paused' 
           ? "Игра на паузе. Дождитесь возобновления." 
           : "Игра еще не началась или уже завершена",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Проверка уровня дома для дорогих предметов
+    if (item.basePrice >= 1500 && player.house_level < 3) {
+      toast({
+        title: "Требуется уровень дома",
+        description: "Для покупки этого предмета нужен уровень дома 3 или выше",
         variant: "destructive"
       });
       return;
