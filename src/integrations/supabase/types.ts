@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           active_events: Json | null
           admin_reconnect_allowed: boolean | null
+          admin_user_id: string | null
           code: string
           created_at: string | null
           id: string
@@ -30,6 +31,7 @@ export type Database = {
         Insert: {
           active_events?: Json | null
           admin_reconnect_allowed?: boolean | null
+          admin_user_id?: string | null
           code: string
           created_at?: string | null
           id?: string
@@ -42,6 +44,7 @@ export type Database = {
         Update: {
           active_events?: Json | null
           admin_reconnect_allowed?: boolean | null
+          admin_user_id?: string | null
           code?: string
           created_at?: string | null
           id?: string
@@ -67,6 +70,7 @@ export type Database = {
           selected_card: string | null
           session_id: string
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           completed_missions?: Json | null
@@ -81,6 +85,7 @@ export type Database = {
           selected_card?: string | null
           session_id: string
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           completed_missions?: Json | null
@@ -95,6 +100,7 @@ export type Database = {
           selected_card?: string | null
           session_id?: string
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -150,6 +156,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -164,9 +191,16 @@ export type Database = {
         }[]
       }
       generate_game_code: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "player"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -293,6 +327,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "player"],
+    },
   },
 } as const
