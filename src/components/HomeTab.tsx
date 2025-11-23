@@ -64,7 +64,7 @@ export const HomeTab = () => {
             <Building2 className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 text-primary" />
             
             {/* HUD дома с показателями: Энергия - Кислород - Вода */}
-            <div className="absolute -top-9 sm:-top-11 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1.5 sm:gap-3 bg-card/90 backdrop-blur-sm px-3 sm:px-4 py-1.5 rounded-full border sm:border-2 border-primary">
+            <div className="absolute -top-9 sm:-top-11 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1.5 sm:gap-3 bg-card/90 backdrop-blur-sm px-4 sm:px-5 py-1.5 rounded-full border sm:border-2 border-primary min-w-[170px] sm:min-w-[200px]">
               <div className="flex items-center gap-0.5 sm:gap-1">
                 <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />
                 <span className="text-[10px] sm:text-xs font-semibold">{energyItems.reduce((sum, i) => sum + i.efficiency * i.level, 0).toFixed(0)}</span>
