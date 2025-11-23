@@ -82,14 +82,10 @@ const missions: Mission[] = [
 ];
 
 export const MissionsPanel = () => {
-  const { player, claimMissionReward, updateMoney } = useGame();
+  const { player, claimMissionReward } = useGame();
 
   const handleClaimReward = async (missionId: string, reward: number) => {
-    if (player) {
-      await updateMoney(player.money + reward);
-      await claimMissionReward(missionId, reward);
-      toast.success(`Награда получена! +${reward}$`);
-    }
+    await claimMissionReward(missionId, reward);
   };
 
   if (!player) return null;
