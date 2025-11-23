@@ -82,9 +82,14 @@ const missions: Mission[] = [
 ];
 
 export const MissionsPanel = () => {
-  const { player, claimMissionReward } = useGame();
+  const { player, claimMissionReward, gameSession } = useGame();
 
   const handleClaimReward = async (missionId: string, reward: number) => {
+    // Дополнительная проверка перед вызовом
+    if (player?.completed_missions.includes(missionId)) {
+      toast.error("Миссия уже выполнена");
+      return;
+    }
     await claimMissionReward(missionId, reward);
   };
 
