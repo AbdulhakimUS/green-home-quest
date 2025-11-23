@@ -5,27 +5,28 @@ import { Leaderboard } from "./Leaderboard";
 import { MissionsPanel } from "./MissionsPanel";
 import { EventsPanel } from "./EventsPanel";
 import { formatLevel } from "@/lib/formatters";
+import { useMemo } from "react";
 
 export const HomeTab = () => {
   const { player } = useGame();
   
   const displayLevel = player ? formatLevel(player.house_level) : "1";
 
-  // Получаем предметы по категориям
-  const energyItems = player?.inventory.filter(i => i.category === "energy") || [];
-  const waterItems = player?.inventory.filter(i => i.category === "water") || [];
-  const greeneryItems = player?.inventory.filter(i => i.category === "greenery") || [];
+  // Мемоизируем предметы по категориям для оптимизации
+  const energyItems = useMemo(() => player?.inventory.filter(i => i.category === "energy") || [], [player?.inventory]);
+  const waterItems = useMemo(() => player?.inventory.filter(i => i.category === "water") || [], [player?.inventory]);
+  const greeneryItems = useMemo(() => player?.inventory.filter(i => i.category === "greenery") || [], [player?.inventory]);
 
-  // Вычисляем интенсивность эффектов (0-100)
-  const getIntensity = (items: any[]) => {
+  // Мемоизируем интенсивность для оптимизации
+  const getIntensity = useMemo(() => (items: any[]) => {
     if (items.length === 0) return 0;
     const totalEfficiency = items.reduce((sum, item) => sum + item.efficiency * item.level, 0);
     return Math.min(100, totalEfficiency * 5);
-  };
+  }, []);
 
-  const energyIntensity = getIntensity(energyItems);
-  const waterIntensity = getIntensity(waterItems);
-  const greeneryIntensity = getIntensity(greeneryItems);
+  const energyIntensity = useMemo(() => getIntensity(energyItems), [energyItems, getIntensity]);
+  const waterIntensity = useMemo(() => getIntensity(waterItems), [waterItems, getIntensity]);
+  const greeneryIntensity = useMemo(() => getIntensity(greeneryItems), [greeneryItems, getIntensity]);
 
   // Иконки для предметов
   const getItemIcon = (item: any) => {
