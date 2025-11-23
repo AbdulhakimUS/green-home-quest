@@ -96,14 +96,14 @@ export const MissionsPanel = () => {
 
   return (
     <Card className="animate-fade-in">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Target className="w-5 h-5 text-info" />
+      <CardHeader className="p-3 sm:p-6">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <Target className="w-4 h-4 sm:w-5 sm:h-5 text-info" />
           Миссии
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
+      <CardContent className="p-3 sm:p-6 pt-0">
+        <div className="space-y-2 sm:space-y-3">
           {missions
             .sort((a, b) => {
               const aCompleted = player.completed_missions.includes(a.id);
@@ -125,7 +125,7 @@ export const MissionsPanel = () => {
             return (
               <div
                 key={mission.id}
-                className={`p-3 rounded-lg border ${
+                className={`p-2.5 sm:p-3 rounded-lg border ${
                   isCompleted 
                     ? "bg-success/10 border-success/20" 
                     : canComplete
@@ -133,23 +133,24 @@ export const MissionsPanel = () => {
                     : "bg-card"
                 }`}
               >
-                <div className="flex items-start gap-3">
-                  <div className="mt-1">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="mt-0.5 sm:mt-1 flex-shrink-0">
                     {isCompleted ? (
-                      <CheckCircle2 className="w-5 h-5 text-success" />
+                      <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
                     ) : (
-                      <Circle className="w-5 h-5 text-muted-foreground" />
+                      <Circle className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                     )}
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold">{mission.title}</h4>
-                    <p className="text-sm text-muted-foreground">{mission.description}</p>
-                    <p className="text-xs text-primary mt-1">Награда: ${mission.reward.toLocaleString()}</p>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-xs sm:text-sm">{mission.title}</h4>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">{mission.description}</p>
+                    <p className="text-[10px] sm:text-xs text-primary mt-0.5 sm:mt-1">Награда: ${mission.reward.toLocaleString()}</p>
                   </div>
                   {canComplete && (
                     <Button 
                       size="sm" 
                       onClick={() => handleClaimReward(mission.id, mission.reward)}
+                      className="flex-shrink-0 text-xs"
                     >
                       Забрать
                     </Button>
