@@ -10,6 +10,7 @@ export interface Player {
   session_id?: string;
   oxygen: number;
   completed_missions: string[];
+  claimed_treasures: string[];
 }
 
 export interface ShopItem {
@@ -48,4 +49,5 @@ export interface GameSession {
   isActive: boolean;
   createdAt: Date;
   status?: 'waiting' | 'active' | 'finished' | 'paused';
+  treasure_items?: string[];
 }

@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Home, Leaf } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -13,7 +19,9 @@ interface LoginScreenProps {
 export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminAuthenticated, setAdminAuthenticated] = useState(false);
-  const [adminChoice, setAdminChoice] = useState<'create' | 'join' | null>(null);
+  const [adminChoice, setAdminChoice] = useState<"create" | "join" | null>(
+    null
+  );
   const [joinCode, setJoinCode] = useState("");
   const [gameCode, setGameCode] = useState("");
   const [nickname, setNickname] = useState("");
@@ -29,11 +37,15 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       const keys = Object.keys(localStorage);
       const now = Date.now();
       const threeHours = 3 * 60 * 60 * 1000;
-      
-      keys.forEach(key => {
-        if (key.startsWith('game_') || key.startsWith('player_') || key === 'current_session') {
+
+      keys.forEach((key) => {
+        if (
+          key.startsWith("game_") ||
+          key.startsWith("player_") ||
+          key === "current_session"
+        ) {
           try {
-            const data = JSON.parse(localStorage.getItem(key) || '{}');
+            const data = JSON.parse(localStorage.getItem(key) || "{}");
             if (data.timestamp && now - data.timestamp > threeHours) {
               localStorage.removeItem(key);
             }
@@ -46,27 +58,31 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     cleanOldData();
 
     // Автовозврат в комнату после перезагрузки
-    const savedSession = localStorage.getItem('current_session');
+    const savedSession = localStorage.getItem("current_session");
     if (savedSession) {
       try {
-        const { code, nickname: savedNickname, timestamp } = JSON.parse(savedSession);
+        const {
+          code,
+          nickname: savedNickname,
+          timestamp,
+        } = JSON.parse(savedSession);
         const now = Date.now();
         const threeHours = 3 * 60 * 60 * 1000;
-        
+
         if (code && savedNickname && now - timestamp < threeHours) {
           setGameCode(code);
           setNickname(savedNickname);
         } else {
-          localStorage.removeItem('current_session');
+          localStorage.removeItem("current_session");
         }
       } catch (e) {
-        localStorage.removeItem('current_session');
+        localStorage.removeItem("current_session");
       }
     }
 
     // Автовставка кода из URL
     const urlParams = new URLSearchParams(window.location.search);
-    const codeFromUrl = urlParams.get('code');
+    const codeFromUrl = urlParams.get("code");
     if (codeFromUrl && /^\d{6}$/.test(codeFromUrl)) {
       setGameCode(codeFromUrl);
     }
@@ -77,7 +93,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       toast({
         title: "Ошибка",
         description: "Заполните все поля",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -86,7 +102,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       toast({
         title: "Ошибка",
         description: "Код должен состоять из 6 цифр",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -94,85 +110,89 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     setLoading(true);
 
     const { data: session, error: sessionError } = await supabase
-      .from('game_sessions')
-      .select('*')
-      .eq('code', gameCode)
+      .from("game_sessions")
+      .select("*")
+      .eq("code", gameCode)
       .single();
 
     if (sessionError || !session) {
       toast({
         title: "Ошибка",
         description: "Игра с таким кодом не найдена",
-        variant: "destructive"
+        variant: "destructive",
       });
       setLoading(false);
       return;
     }
 
     // Проверяем статус игры - если игра уже началась, новые игроки не могут присоединиться
-    if (session.status === 'active' || session.status === 'paused') {
+    if (session.status === "active" || session.status === "paused") {
       toast({
         title: "Ошибка",
         description: "Игра уже началась. Присоединиться нельзя.",
-        variant: "destructive"
+        variant: "destructive",
       });
       setLoading(false);
       return;
     }
 
     const { data: existingPlayer } = await supabase
-      .from('players')
-      .select('*')
-      .eq('session_id', session.id)
-      .eq('nickname', nickname)
+      .from("players")
+      .select("*")
+      .eq("session_id", session.id)
+      .eq("nickname", nickname)
       .single();
 
     if (existingPlayer) {
       toast({
         title: "Ошибка",
         description: "Этот никнейм уже занят",
-        variant: "destructive"
+        variant: "destructive",
       });
       setLoading(false);
       return;
     }
 
-    console.log('🎮 Creating player for session:', session.id);
+    console.log("🎮 Creating player for session:", session.id);
     const { data: newPlayer, error: playerError } = await supabase
-      .from('players')
+      .from("players")
       .insert({
         session_id: session.id,
         nickname,
         money: session.initial_balance || 20000,
         house_level: 1,
         selected_card: null,
-        inventory: []
+        inventory: [],
+        claimed_treasures: [],
       })
       .select()
       .single();
 
     if (playerError || !newPlayer) {
-      console.error('❌ Error creating player:', playerError);
+      console.error("❌ Error creating player:", playerError);
       toast({
         title: "Ошибка",
         description: "Не удалось создать игрока",
-        variant: "destructive"
+        variant: "destructive",
       });
       setLoading(false);
       return;
     }
 
     if (newPlayer) {
-      console.log('✅ Player created successfully');
+      console.log("✅ Player created successfully");
       // Сохраняем в localStorage для восстановления
-      localStorage.setItem('eco_player_id', newPlayer.id);
-      localStorage.setItem('eco_session_id', session.id);
-      localStorage.setItem('current_session', JSON.stringify({
-        code: gameCode,
-        nickname,
-        timestamp: Date.now()
-      }));
-      
+      localStorage.setItem("eco_player_id", newPlayer.id);
+      localStorage.setItem("eco_session_id", session.id);
+      localStorage.setItem(
+        "current_session",
+        JSON.stringify({
+          code: gameCode,
+          nickname,
+          timestamp: Date.now(),
+        })
+      );
+
       toast({
         title: "Успешно!",
         description: `Добро пожаловать, ${nickname}!`,
@@ -186,7 +206,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       toast({
         title: "Ошибка",
         description: "Неверный логин или пароль",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -204,45 +224,45 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       toast({
         title: "Ошибка",
         description: "Введите корректный начальный баланс",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
 
-    console.log('🎲 Generating game code...');
-    const { data: codeData } = await supabase.rpc('generate_game_code');
+    console.log("🎲 Generating game code...");
+    const { data: codeData } = await supabase.rpc("generate_game_code");
     const newGameCode = codeData as string;
-    console.log('✅ Generated code:', newGameCode);
+    console.log("✅ Generated code:", newGameCode);
 
     const { data: session, error: sessionError } = await supabase
-      .from('game_sessions')
+      .from("game_sessions")
       .insert({
         code: newGameCode,
-        status: 'waiting',
+        status: "waiting",
         timer_duration: 1800,
-        initial_balance: balance
+        initial_balance: balance,
       })
       .select()
       .single();
 
     if (sessionError || !session) {
-      console.error('❌ Error creating session:', sessionError);
+      console.error("❌ Error creating session:", sessionError);
       toast({
         title: "Ошибка",
         description: "Не удалось создать игру",
-        variant: "destructive"
+        variant: "destructive",
       });
       setLoading(false);
       return;
     }
 
-    console.log('✅ Session created:', session);
+    console.log("✅ Session created:", session);
     // Сохраняем для админа
-    localStorage.setItem('eco_session_id', session.id);
-    localStorage.setItem('eco_is_admin', 'true');
-    
+    localStorage.setItem("eco_session_id", session.id);
+    localStorage.setItem("eco_is_admin", "true");
+
     setLoading(false);
     toast({
       title: "Игра создана!",
@@ -256,7 +276,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       toast({
         title: "Ошибка",
         description: "Введите корректный 6-значный код",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -264,26 +284,26 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     setLoading(true);
 
     const { data: session, error: sessionError } = await supabase
-      .from('game_sessions')
-      .select('*')
-      .eq('code', joinCode)
+      .from("game_sessions")
+      .select("*")
+      .eq("code", joinCode)
       .single();
 
     if (sessionError || !session) {
       toast({
         title: "Ошибка",
         description: "Игра с таким кодом не найдена",
-        variant: "destructive"
+        variant: "destructive",
       });
       setLoading(false);
       return;
     }
 
-    console.log('✅ Joined session:', session);
+    console.log("✅ Joined session:", session);
     // Сохраняем для админа
-    localStorage.setItem('eco_session_id', session.id);
-    localStorage.setItem('eco_is_admin', 'true');
-    
+    localStorage.setItem("eco_session_id", session.id);
+    localStorage.setItem("eco_is_admin", "true");
+
     setLoading(false);
     toast({
       title: "Успешно!",
@@ -300,15 +320,23 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
             <Home className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
             <Leaf className="w-8 h-8 sm:w-10 sm:h-10 text-success" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-primary">Эко Дом</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Создайте самый экологичный дом!</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-primary">
+            Эко Дом
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Создайте самый экологичный дом!
+          </p>
         </div>
 
         {!isAdmin ? (
           <Card className="border-2 shadow-lg">
             <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-base sm:text-lg">Присоединиться к игре</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Введите 6-значный код игры и никнейм</CardDescription>
+              <CardTitle className="text-base sm:text-lg">
+                Присоединиться к игре
+              </CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                Введите 6-значный код игры и никнейм
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
               <Input
@@ -324,9 +352,9 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                 onChange={(e) => setNickname(e.target.value)}
                 className="text-sm sm:text-base"
               />
-              <Button 
-                onClick={handlePlayerLogin} 
-                className="w-full text-sm sm:text-base" 
+              <Button
+                onClick={handlePlayerLogin}
+                className="w-full text-sm sm:text-base"
                 size="lg"
                 disabled={loading}
               >
@@ -344,8 +372,12 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         ) : !adminAuthenticated ? (
           <Card className="border-2 shadow-lg border-primary">
             <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-base sm:text-lg">Вход администратора</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Войдите для управления игрой</CardDescription>
+              <CardTitle className="text-base sm:text-lg">
+                Вход администратора
+              </CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                Войдите для управления игрой
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
               <Input
@@ -361,9 +393,9 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                 onChange={(e) => setAdminPassword(e.target.value)}
                 className="text-sm sm:text-base"
               />
-              <Button 
-                onClick={handleAdminLogin} 
-                className="w-full text-sm sm:text-base" 
+              <Button
+                onClick={handleAdminLogin}
+                className="w-full text-sm sm:text-base"
                 size="lg"
                 disabled={loading}
               >
@@ -381,35 +413,41 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         ) : (
           <Card className="border-2 shadow-lg border-primary">
             <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-base sm:text-lg">Управление игрой</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Выберите действие</CardDescription>
+              <CardTitle className="text-base sm:text-lg">
+                Управление игрой
+              </CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                Выберите действие
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
               {!adminChoice ? (
                 <>
-                  <Button 
-                    onClick={() => setAdminChoice('create')} 
-                    className="w-full text-sm sm:text-base" 
+                  <Button
+                    onClick={() => setAdminChoice("create")}
+                    className="w-full text-sm sm:text-base"
                     size="lg"
                   >
                     Создать новую комнату
                   </Button>
-                  <Button 
-                    onClick={() => setAdminChoice('join')} 
-                    className="w-full text-sm sm:text-base" 
+                  <Button
+                    onClick={() => setAdminChoice("join")}
+                    className="w-full text-sm sm:text-base"
                     size="lg"
                     variant="outline"
                   >
                     Присоединиться к существующей
                   </Button>
                 </>
-              ) : adminChoice === 'create' ? (
+              ) : adminChoice === "create" ? (
                 <>
                   <p className="text-xs sm:text-sm text-muted-foreground text-center">
                     Создать новую игровую комнату
                   </p>
                   <div>
-                    <label className="text-xs sm:text-sm text-muted-foreground">Начальный баланс игроков ($)</label>
+                    <label className="text-xs sm:text-sm text-muted-foreground">
+                      Начальный баланс игроков ($)
+                    </label>
                     <Input
                       type="number"
                       value={initialBalance}
@@ -419,9 +457,9 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                       className="mt-1 text-center text-base sm:text-lg font-semibold"
                     />
                   </div>
-                  <Button 
-                    onClick={handleCreateRoom} 
-                    className="w-full text-sm sm:text-base" 
+                  <Button
+                    onClick={handleCreateRoom}
+                    className="w-full text-sm sm:text-base"
                     size="lg"
                     disabled={loading}
                   >
@@ -444,9 +482,9 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                     className="text-center text-base sm:text-lg font-semibold"
                     maxLength={6}
                   />
-                  <Button 
-                    onClick={handleJoinRoom} 
-                    className="w-full text-sm sm:text-base" 
+                  <Button
+                    onClick={handleJoinRoom}
+                    className="w-full text-sm sm:text-base"
                     size="lg"
                     disabled={loading}
                   >
