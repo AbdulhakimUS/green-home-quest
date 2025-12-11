@@ -10,7 +10,9 @@ export interface Player {
   session_id?: string;
   oxygen: number;
   completed_missions: string[];
-  claimed_treasures: string[];
+  claimed_treasures?: string[];
+  claimed_item_rewards?: number[]; // пороги, за которые уже получена награда
+  all_treasures_claimed?: boolean; // получена ли награда за все клады
 }
 
 export interface ShopItem {
@@ -35,7 +37,6 @@ export interface MarketListing {
   created_at: string;
 }
 
-
 export interface Mission {
   id: string;
   title: string;
@@ -58,7 +59,7 @@ export interface GameSession {
   players: Player[];
   isActive: boolean;
   createdAt: Date;
-  status?: 'waiting' | 'active' | 'finished' | 'paused';
+  status?: "waiting" | "active" | "finished" | "paused";
   treasure_items?: string[];
   market_listings?: MarketListing[];
 }

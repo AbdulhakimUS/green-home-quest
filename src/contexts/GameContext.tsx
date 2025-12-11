@@ -11,6 +11,7 @@ import { CardType, ShopItem, MarketListing } from "@/types/game";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { shopItems } from "@/data/shopItems";
+import { ALL_TREASURES_BONUS, ITEM_COUNT_REWARDS } from "@/data/gameConfig";
 
 interface Player {
   id: string;
@@ -23,6 +24,8 @@ interface Player {
   oxygen: number;
   completed_missions: string[];
   claimed_treasures?: string[];
+  claimed_item_rewards?: number[];
+  all_treasures_claimed?: boolean;
 }
 
 interface GameSession {
@@ -526,6 +529,80 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
             title: "🎁 Найден клад!",
             description: `+$${treasureBonus.toLocaleString()} бонус!`,
           });
+          // Проверка на все 4 клада
+          const newClaimedTreasures = updatedClaimedTreasures;
+          if (
+            newClaimedTreasures.length === 4 &&
+            !currentPlayer.all_treasures_claimed
+          ) {
+            const allTreasuresBonus = ALL_TREASURES_BONUS;
+            const moneyWithAllTreasures =
+              newMoneyWithTreasure + allTreasuresBonus;
+
+            setPlayer((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    money: moneyWithAllTreasures,
+                    all_treasures_claimed: true,
+                  }
+                : null
+            );
+
+            await supabase
+              .from("players")
+              .update({
+                money: moneyWithAllTreasures,
+                all_treasures_claimed: true,
+              })
+              .eq("id", currentPlayer.id);
+
+            toast({
+              title: "🏆 Поздравляем! Все 4 клада найдены!",
+              description: `Супер-бонус: +$${allTreasuresBonus.toLocaleString()}`,
+            });
+            // Проверка наград за количество предметов
+            const totalItems = updatedInventory.length;
+            const currentClaimedItemRewards =
+              currentPlayer.claimed_item_rewards || [];
+
+            for (const rewardTier of ITEM_COUNT_REWARDS) {
+              if (
+                totalItems >= rewardTier.threshold &&
+                !currentClaimedItemRewards.includes(rewardTier.threshold)
+              ) {
+                const updatedClaimedItemRewards = [
+                  ...currentClaimedItemRewards,
+                  rewardTier.threshold,
+                ];
+                const currentMoney = player?.money || newMoney;
+                const newMoneyWithItemReward = currentMoney + rewardTier.reward;
+
+                setPlayer((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        money: newMoneyWithItemReward,
+                        claimed_item_rewards: updatedClaimedItemRewards,
+                      }
+                    : null
+                );
+
+                await supabase
+                  .from("players")
+                  .update({
+                    money: newMoneyWithItemReward,
+                    claimed_item_rewards: updatedClaimedItemRewards,
+                  })
+                  .eq("id", currentPlayer.id);
+
+                toast({
+                  title: `🎯 Достижение: ${rewardTier.threshold} предметов!`,
+                  description: `Бонус: +$${rewardTier.reward.toLocaleString()}`,
+                });
+              }
+            }
+          }
         }
       }
     } catch (error) {
@@ -961,6 +1038,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         oxygen: 0,
         completed_missions: [],
         claimed_treasures: [],
+        claimed_item_rewards: [],
+        all_treasures_claimed: false,
       })
       .eq("session_id", gameSession.id);
 
