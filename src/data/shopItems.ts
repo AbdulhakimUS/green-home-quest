@@ -11,7 +11,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 200,
       efficiency: 1,
       ecology: 3,
-      profitPerSecond: 2,
       description: "Милый хомяк, который бегает в колесе и вырабатывает минимум энергии"
     },
     {
@@ -23,7 +22,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 500,
       efficiency: 2,
       ecology: 4,
-      profitPerSecond: 5,
       description: "Ручной генератор для выработки небольшого количества энергии"
     },
     {
@@ -35,7 +33,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 1000,
       efficiency: 4,
       ecology: 5,
-      profitPerSecond: 10,
       description: "Велосипед с генератором для выработки энергии при езде"
     },
     {
@@ -47,7 +44,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 2000,
       efficiency: 6,
       ecology: 7,
-      profitPerSecond: 20,
       description: "Традиционное водяное колесо для выработки энергии из потока воды"
     },
     {
@@ -59,7 +55,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 3500,
       efficiency: 8,
       ecology: 9,
-      profitPerSecond: 35,
       description: "Современная солнечная панель для экологичного получения энергии"
     },
     {
@@ -71,7 +66,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 5000,
       efficiency: 10,
       ecology: 10,
-      profitPerSecond: 50,
       description: "Мощная ветряная турбина - самый эффективный и экологичный источник энергии"
     }
   ],
@@ -85,7 +79,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 150,
       efficiency: 1,
       ecology: 5,
-      profitPerSecond: 1.5,
       description: "Простое ведро для сбора дождевой воды"
     },
     {
@@ -97,7 +90,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 400,
       efficiency: 2,
       ecology: 6,
-      profitPerSecond: 4,
       description: "Большая бочка для сбора и хранения дождевой воды"
     },
     {
@@ -109,7 +101,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 900,
       efficiency: 4,
       ecology: 7,
-      profitPerSecond: 9,
       description: "Традиционный колодец для получения грунтовых вод"
     },
     {
@@ -121,7 +112,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 1800,
       efficiency: 6,
       ecology: 8,
-      profitPerSecond: 18,
       description: "Современная система фильтрации и очистки воды"
     },
     {
@@ -133,7 +123,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 3000,
       efficiency: 8,
       ecology: 9,
-      profitPerSecond: 30,
       description: "Профессиональная система сбора дождевой воды с крыши"
     },
     {
@@ -145,7 +134,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 4500,
       efficiency: 10,
       ecology: 10,
-      profitPerSecond: 45,
       description: "Передовая технология извлечения воды из воздуха"
     }
   ],
@@ -159,7 +147,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 100,
       efficiency: 1,
       ecology: 4,
-      profitPerSecond: 1,
       description: "Простой газон для улучшения экологии участка"
     },
     {
@@ -171,7 +158,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 300,
       efficiency: 2,
       ecology: 5,
-      profitPerSecond: 3,
       description: "Красивая клумба с цветами для озеленения"
     },
     {
@@ -183,7 +169,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 700,
       efficiency: 4,
       ecology: 6,
-      profitPerSecond: 7,
       description: "Декоративный куст для улучшения экологии"
     },
     {
@@ -195,7 +180,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 1500,
       efficiency: 6,
       ecology: 8,
-      profitPerSecond: 15,
       description: "Фруктовое дерево, которое приносит плоды и кислород"
     },
     {
@@ -207,7 +191,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 2800,
       efficiency: 8,
       ecology: 9,
-      profitPerSecond: 28,
       description: "Могучий дуб - отличный производитель кислорода"
     },
     {
@@ -219,7 +202,6 @@ export const shopItems: Record<CardType, ShopItem[]> = {
       basePrice: 4000,
       efficiency: 10,
       ecology: 10,
-      profitPerSecond: 40,
       description: "Современный вертикальный сад - максимальная эффективность на минимальной площади"
     }
   ]

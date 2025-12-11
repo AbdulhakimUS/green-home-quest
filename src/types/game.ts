@@ -23,7 +23,6 @@ export interface ShopItem {
   ecology: number;
   description: string;
   image?: string;
-  profitPerSecond: number;
 }
 
 export interface Mission {

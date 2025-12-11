@@ -1,4 +1,15 @@
-import { Home, ShoppingCart, CreditCard, Coins, TrendingUp, Clock, History, Target, Gift, LogOut } from "lucide-react";
+import {
+  Home,
+  ShoppingCart,
+  CreditCard,
+  Coins,
+  TrendingUp,
+  Clock,
+  History,
+  Target,
+  Gift,
+  LogOut,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useGame } from "@/contexts/GameContext";
@@ -13,22 +24,29 @@ interface GameNavbarProps {
   onExitClick?: () => void;
 }
 
-export const GameNavbar = ({ activeTab, onTabChange, onExitClick }: GameNavbarProps) => {
-  const { player, timeRemaining, gameSession, currentIncome } = useGame();
+export const GameNavbar = ({
+  activeTab,
+  onTabChange,
+  onExitClick,
+}: GameNavbarProps) => {
+  const { player, timeRemaining, gameSession } = useGame();
   const [showHistory, setShowHistory] = useState(false);
   const [hasUnclaimedMission, setHasUnclaimedMission] = useState(false);
 
   // Проверяем, есть ли невыполненные миссии
   useEffect(() => {
     if (!player) return;
-    
+
     const missions = [
       { id: "house_5", condition: (p: any) => p.house_level >= 5 },
       { id: "money_50k", condition: (p: any) => p.money >= 50000 },
-      { id: "all_categories", condition: (p: any) => {
-        const categories = new Set(p.inventory.map((i: any) => i.category));
-        return categories.size === 3;
-      }},
+      {
+        id: "all_categories",
+        condition: (p: any) => {
+          const categories = new Set(p.inventory.map((i: any) => i.category));
+          return categories.size === 3;
+        },
+      },
       { id: "house_10", condition: (p: any) => p.house_level >= 10 },
       { id: "house_15", condition: (p: any) => p.house_level >= 15 },
       { id: "items_10", condition: (p: any) => p.inventory.length >= 10 },
@@ -38,26 +56,26 @@ export const GameNavbar = ({ activeTab, onTabChange, onExitClick }: GameNavbarPr
       { id: "max_level", condition: (p: any) => p.house_level >= 25 },
     ];
 
-    const hasUnclaimed = missions.some(m => 
-      !player.completed_missions.includes(m.id) && m.condition(player)
+    const hasUnclaimed = missions.some(
+      (m) => !player.completed_missions.includes(m.id) && m.condition(player)
     );
-    
+
     setHasUnclaimedMission(hasUnclaimed);
   }, [player]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const houseProgress = player ? ((player.house_level / 25) * 100) : 0;
+  const houseProgress = player ? (player.house_level / 25) * 100 : 0;
   const displayLevel = player ? formatLevel(player.house_level) : "0";
 
   return (
     <>
       {/* Кнопка выхода для мобильных - сверху слева, только на вкладке "Дом" */}
-      {onExitClick && activeTab === 'home' && (
+      {onExitClick && activeTab === "home" && (
         <Button
           variant="destructive"
           onClick={onExitClick}
@@ -67,7 +85,7 @@ export const GameNavbar = ({ activeTab, onTabChange, onExitClick }: GameNavbarPr
           <LogOut className="w-5 h-5" />
         </Button>
       )}
-      
+
       <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border z-50 lg:left-0 lg:top-0 lg:bottom-0 lg:right-auto lg:w-64 lg:border-r lg:border-t-0">
         <div className="flex justify-around items-center h-16 px-2 lg:flex-col lg:h-full lg:justify-start lg:gap-4 lg:py-8">
           <Button
@@ -102,7 +120,10 @@ export const GameNavbar = ({ activeTab, onTabChange, onExitClick }: GameNavbarPr
             <Target className="w-6 h-6 lg:mr-2" />
             <span className="text-xs mt-1 lg:text-sm lg:mt-0">Миссии</span>
             {hasUnclaimedMission && (
-              <Badge variant="destructive" className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0">
+              <Badge
+                variant="destructive"
+                className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0"
+              >
                 <Gift className="w-3 h-3" />
               </Badge>
             )}
@@ -124,22 +145,25 @@ export const GameNavbar = ({ activeTab, onTabChange, onExitClick }: GameNavbarPr
             <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
               <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-success flex-shrink-0" />
               <span className="text-sm sm:text-base font-semibold truncate">
-                {player && player.house_level >= 25 ? "Макс" : `Ур. ${displayLevel}`}
+                {player && player.house_level >= 25
+                  ? "Макс"
+                  : `Ур. ${displayLevel}`}
               </span>
             </div>
-            {timeRemaining !== null && gameSession?.status === 'active' && (
+            {timeRemaining !== null && gameSession?.status === "active" && (
               <div className="flex items-center gap-2 text-warning px-2 py-1 bg-warning/10 rounded-md">
                 <Clock className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span className="text-sm sm:text-base font-bold">{formatTime(timeRemaining)}</span>
+                <span className="text-sm sm:text-base font-bold">
+                  {formatTime(timeRemaining)}
+                </span>
               </div>
             )}
             <div className="flex flex-col items-end gap-1 min-w-0">
               <div className="flex items-center gap-2">
                 <Coins className="w-4 h-4 sm:w-5 sm:h-5 text-warning flex-shrink-0" />
-                <span className="text-sm sm:text-base font-semibold truncate">{formatMoney(player?.money || 0)}$</span>
-              </div>
-              <div className="text-xs sm:text-sm text-success whitespace-nowrap">
-                {formatLevel(currentIncome)}$/сек
+                <span className="text-sm sm:text-base font-semibold truncate">
+                  {formatMoney(player?.money || 0)}$
+                </span>
               </div>
             </div>
           </div>

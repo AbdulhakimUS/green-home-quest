@@ -33,7 +33,6 @@ interface GameContextType {
   allPlayers: Player[];
   gameSession: GameSession | null;
   timeRemaining: number | null;
-  currentIncome: number;
   updateMoney: (amount: number) => void;
   selectCard: (card: CardType) => void;
   purchaseItem: (item: ShopItem) => Promise<void>;
@@ -59,7 +58,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
-  const [currentIncome, setCurrentIncome] = useState(0);
 
   // Восстановление сессии из localStorage
   useEffect(() => {
@@ -667,33 +665,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // Система прибыли (стабильная каждую секунду) с мемоизацией
-  const totalProfit = useMemo(() => {
-    if (!player) return 0;
-    return player.inventory.reduce((sum, item) => {
-      const levelMultiplier = Math.pow(1.5, item.level - 1);
-      return sum + item.profitPerSecond * levelMultiplier * item.level;
-    }, 0);
-  }, [player?.inventory]);
-
-  useEffect(() => {
-    // Начисление прибыли только если игра активна (не на паузе, не завершена)
-    if (!player || !gameSession || gameSession.status !== 'active' || totalProfit === 0) {
-      return;
-    }
-
-    const interval = setInterval(() => {
-      updateMoney(totalProfit);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [player?.id, totalProfit, gameSession?.status, updateMoney]);
-
-  // Вычисление текущего дохода
-  useEffect(() => {
-    setCurrentIncome(totalProfit);
-  }, [totalProfit]);
-
+  
   return (
     <GameContext.Provider
       value={{
@@ -703,7 +675,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         allPlayers,
         gameSession,
         timeRemaining,
-        currentIncome,
         updateMoney,
         selectCard,
         purchaseItem,
