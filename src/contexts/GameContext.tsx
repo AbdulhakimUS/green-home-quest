@@ -7,7 +7,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { CardType, ShopItem } from "@/types/game";
+import { CardType, ShopItem, MarketListing } from "@/types/game";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { shopItems } from "@/data/shopItems";
@@ -22,7 +22,7 @@ interface Player {
   inventory: ShopItem[];
   oxygen: number;
   completed_missions: string[];
-  treasure_items?: string[];
+  claimed_treasures?: string[];
 }
 
 interface GameSession {
@@ -58,6 +58,10 @@ interface GameContextType {
   setPlayer: (player: Player | null) => void;
   setIsAdmin: (isAdmin: boolean) => void;
   setGameSession: (session: GameSession | null) => void;
+  marketListings: MarketListing[];
+  listItemForSale: (item: ShopItem, price: number) => Promise<void>;
+  buyFromMarket: (listingId: string) => Promise<void>;
+  removeFromMarket: (listingId: string) => Promise<void>;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -69,6 +73,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [marketListings, setMarketListings] = useState<MarketListing[]>([]);
 
   // Восстановление сессии из localStorage
   useEffect(() => {
@@ -146,11 +151,9 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         }));
         setAllPlayers(players);
 
-        // Проверяем, был ли удален текущий игрок
         if (player && !isAdmin) {
           const updatedPlayer = players.find((p) => p.id === player.id);
           if (!updatedPlayer) {
-            // Игрок был удален админом
             toast({
               title: "Вы были исключены с игры",
               description: "Администратор удалил вас из игры",
@@ -183,7 +186,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           filter: `session_id=eq.${gameSession.id}`,
         },
         (payload) => {
-          // Если это DELETE и это текущий игрок - немедленно выбрасываем
           if (
             payload.eventType === "DELETE" &&
             player &&
@@ -216,6 +218,47 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [gameSession?.id, player?.id, isAdmin]);
 
+  // Подписка на изменения рынка
+  useEffect(() => {
+    if (!gameSession?.id) return;
+
+    const loadMarketListings = async () => {
+      const { data } = await supabase
+        .from("market_listings")
+        .select("*")
+        .eq("session_id", gameSession.id);
+
+      if (data) {
+        setMarketListings(
+          data.map((listing) => ({
+            ...listing,
+            item: listing.item as any as ShopItem,
+          }))
+        );
+      }
+    };
+
+    loadMarketListings();
+
+    const channel = supabase
+      .channel(`market-changes-${gameSession.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "market_listings",
+          filter: `session_id=eq.${gameSession.id}`,
+        },
+        () => loadMarketListings()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [gameSession?.id]);
+
   // Подписка на изменения сессии
   useEffect(() => {
     if (!gameSession?.id) return;
@@ -246,7 +289,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Если игра на паузе, сохраняем текущее время и не обновляем
     if (gameSession.status === "paused") {
       if (gameSession.timer_duration) {
         setTimeRemaining(gameSession.timer_duration);
@@ -254,7 +296,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Таймер работает только если статус 'active'
     if (gameSession.status !== "active") {
       setTimeRemaining(null);
       return;
@@ -296,11 +337,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       if (!player) return;
 
       const newMoney = Math.max(0, player.money + amount);
-
-      // Обновляем локальное состояние немедленно
       setPlayer((prev) => (prev ? { ...prev, money: newMoney } : null));
 
-      // Немедленно обновляем в БД для критических операций (покупки, миссии)
       if (Math.abs(amount) > 10) {
         await supabase
           .from("players")
@@ -311,7 +349,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     [player?.id]
   );
 
-  // Батчинг обновлений денег в БД для мелких начислений (пассивный доход)
   useEffect(() => {
     if (!player || !gameSession || gameSession.status !== "active") return;
 
@@ -356,10 +393,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Получаем свежие данные игрока из состояния
     const currentPlayer = player;
 
-    // Проверка уровня дома для дорогих предметов
     if (item.basePrice >= 1500 && currentPlayer.house_level < 3) {
       toast({
         title: "Требуется уровень дома",
@@ -398,7 +433,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Рассчитываем повышение уровня дома
     if (item.tier === 1) houseIncrease = 0.25;
     else if (item.tier === 2) houseIncrease = 0.5;
     else if (item.tier === 3) houseIncrease = 0.75;
@@ -406,7 +440,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     else if (item.tier === 5) houseIncrease = 1.25;
     else houseIncrease = 1.5;
 
-    // Растения увеличивают кислород
     if (item.category === "greenery") {
       oxygenIncrease = item.tier * 2;
     }
@@ -418,7 +451,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     const newMoney = currentPlayer.money - price;
     const newOxygen = currentPlayer.oxygen + oxygenIncrease;
 
-    // Оптимистичное обновление
     const updatedPlayer = {
       ...currentPlayer,
       money: newMoney,
@@ -428,7 +460,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     };
     setPlayer(updatedPlayer);
 
-    // Транзакционное обновление в БД
     try {
       const { error: updateError } = await supabase
         .from("players")
@@ -442,7 +473,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
       if (updateError) throw updateError;
 
-      // История покупок без ожидания
       supabase
         .from("purchase_history")
         .insert({
@@ -460,7 +490,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         title: "Покупка успешна!",
         description: `${item.name} (Уровень ${newLevel})`,
       });
-      // Проверка на клад
+
       if (gameSession.treasure_items?.includes(item.id)) {
         const alreadyClaimed = currentPlayer.claimed_treasures?.includes(
           item.id
@@ -474,7 +504,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
             item.id,
           ];
 
-          // Обновляем локальное состояние
           setPlayer((prev) =>
             prev
               ? {
@@ -485,7 +514,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
               : null
           );
 
-          // Обновляем в БД
           await supabase
             .from("players")
             .update({
@@ -501,11 +529,217 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     } catch (error) {
-      // Откат при ошибке - возвращаем предыдущее состояние
       setPlayer(currentPlayer);
       toast({
         title: "Ошибка покупки",
         description: "Не удалось выполнить покупку. Попробуйте еще раз.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // === ФУНКЦИИ РЫНКА ===
+
+  const listItemForSale = async (item: ShopItem, price: number) => {
+    if (!player || !gameSession) return;
+
+    const maxPrice = Math.floor(item.basePrice * 0.75);
+    if (price > maxPrice) {
+      toast({
+        title: "Ошибка",
+        description: `Максимальная цена: $${maxPrice}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const inventoryItem = player.inventory.find((i) => i.id === item.id);
+    if (!inventoryItem) {
+      toast({
+        title: "Ошибка",
+        description: "Предмет не найден в инвентаре",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Удаляем предмет из инвентаря
+    const updatedInventory = player.inventory.filter((i) => i.id !== item.id);
+
+    try {
+      // Добавляем лот на рынок
+      const { error: listingError } = await supabase
+        .from("market_listings")
+        .insert({
+          session_id: gameSession.id,
+          seller_id: player.id,
+          seller_nickname: player.nickname,
+          item: inventoryItem as any,
+          price: price,
+        });
+
+      if (listingError) throw listingError;
+
+      // Обновляем инвентарь игрока
+      const { error: playerError } = await supabase
+        .from("players")
+        .update({ inventory: updatedInventory as any })
+        .eq("id", player.id);
+
+      if (playerError) throw playerError;
+
+      setPlayer((prev) =>
+        prev ? { ...prev, inventory: updatedInventory } : null
+      );
+
+      toast({
+        title: "Выставлено на продажу",
+        description: `${item.name} за $${price}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось выставить предмет",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const buyFromMarket = async (listingId: string) => {
+    if (!player || !gameSession) return;
+
+    const listing = marketListings.find((l) => l.id === listingId);
+    if (!listing) {
+      toast({
+        title: "Ошибка",
+        description: "Лот не найден",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (listing.seller_id === player.id) {
+      toast({
+        title: "Ошибка",
+        description: "Нельзя купить свой товар",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (player.money < listing.price) {
+      toast({
+        title: "Недостаточно средств",
+        description: `Нужно: $${listing.price}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const COMMISSION_RATE = 0.07; // 7% комиссия
+    const commission = Math.floor(listing.price * COMMISSION_RATE);
+    const sellerEarnings = listing.price - commission;
+
+    try {
+      // Удаляем лот
+      const { error: deleteError } = await supabase
+        .from("market_listings")
+        .delete()
+        .eq("id", listingId);
+
+      if (deleteError) throw deleteError;
+
+      // Списываем деньги у покупателя и добавляем предмет
+      const buyerNewMoney = player.money - listing.price;
+      const buyerNewInventory = [...player.inventory, listing.item];
+
+      const { error: buyerError } = await supabase
+        .from("players")
+        .update({
+          money: buyerNewMoney,
+          inventory: buyerNewInventory as any,
+        })
+        .eq("id", player.id);
+
+      if (buyerError) throw buyerError;
+
+      // Начисляем деньги продавцу
+      const { data: sellerData } = await supabase
+        .from("players")
+        .select("money")
+        .eq("id", listing.seller_id)
+        .single();
+
+      if (sellerData) {
+        await supabase
+          .from("players")
+          .update({ money: sellerData.money + sellerEarnings })
+          .eq("id", listing.seller_id);
+      }
+
+      setPlayer((prev) =>
+        prev
+          ? { ...prev, money: buyerNewMoney, inventory: buyerNewInventory }
+          : null
+      );
+
+      toast({
+        title: "Покупка успешна!",
+        description: `${listing.item.name} куплен за $${listing.price}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось купить предмет",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const removeFromMarket = async (listingId: string) => {
+    if (!player) return;
+
+    const listing = marketListings.find((l) => l.id === listingId);
+    if (!listing || listing.seller_id !== player.id) {
+      toast({
+        title: "Ошибка",
+        description: "Лот не найден или не принадлежит вам",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Удаляем лот
+      const { error: deleteError } = await supabase
+        .from("market_listings")
+        .delete()
+        .eq("id", listingId);
+
+      if (deleteError) throw deleteError;
+
+      // Возвращаем предмет в инвентарь
+      const updatedInventory = [...player.inventory, listing.item];
+
+      const { error: playerError } = await supabase
+        .from("players")
+        .update({ inventory: updatedInventory as any })
+        .eq("id", player.id);
+
+      if (playerError) throw playerError;
+
+      setPlayer((prev) =>
+        prev ? { ...prev, inventory: updatedInventory } : null
+      );
+
+      toast({
+        title: "Снято с продажи",
+        description: `${listing.item.name} возвращен в инвентарь`,
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось снять с продажи",
         variant: "destructive",
       });
     }
@@ -528,7 +762,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const claimMissionReward = async (missionId: string, reward: number) => {
     if (!player || !gameSession) return;
 
-    // Проверка статуса игры
     if (gameSession.status !== "active") {
       toast({
         title: "Ошибка",
@@ -541,7 +774,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Проверка что миссия не выполнена
     if (player.completed_missions.includes(missionId)) {
       toast({
         title: "Ошибка",
@@ -554,7 +786,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     const updatedMissions = [...player.completed_missions, missionId];
     const newMoney = player.money + reward;
 
-    // Оптимистичное обновление
     setPlayer((prev) =>
       prev
         ? {
@@ -581,7 +812,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         description: `Получено: $${reward.toLocaleString()}`,
       });
     } catch (error) {
-      // Откат при ошибке
       setPlayer(player);
       toast({
         title: "Ошибка",
@@ -606,7 +836,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     async (playerId: string) => {
       if (!isAdmin) return;
 
-      // Удаляем игрока (история покупок удалится каскадно)
       const { error } = await supabase
         .from("players")
         .delete()
@@ -640,7 +869,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const startGame = async (duration: number) => {
     if (!gameSession || !isAdmin) return;
 
-    // Генерируем 4 случайных клада из всех предметов
     const allItems = [
       ...shopItems.energy,
       ...shopItems.water,
@@ -670,7 +898,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
     const newStatus = gameSession.status === "paused" ? "active" : "paused";
 
-    // Оптимистично обновляем локальное состояние
     setGameSession((prev) =>
       prev
         ? { ...prev, status: newStatus, timer_duration: timeRemaining }
@@ -678,7 +905,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     );
 
     if (newStatus === "paused") {
-      // При паузе сохраняем текущее оставшееся время
       await supabase
         .from("game_sessions")
         .update({
@@ -692,7 +918,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         description: "Все таймеры остановлены",
       });
     } else {
-      // При возобновлении устанавливаем новое started_at
       await supabase
         .from("game_sessions")
         .update({
@@ -712,13 +937,11 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const restartGame = async () => {
     if (!gameSession || !isAdmin) return;
 
-    // Получаем всех игроков этой сессии
     const { data: sessionPlayers } = await supabase
       .from("players")
       .select("id")
       .eq("session_id", gameSession.id);
 
-    // Удаляем историю покупок для всех игроков
     if (sessionPlayers && sessionPlayers.length > 0) {
       const playerIds = sessionPlayers.map((p) => p.id);
       await supabase
@@ -727,7 +950,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         .in("player_id", playerIds);
     }
 
-    // Сбрасываем всех игроков к начальным значениям
     const initialBalance = gameSession.initial_balance || 20000;
     await supabase
       .from("players")
@@ -738,16 +960,23 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         inventory: [],
         oxygen: 0,
         completed_missions: [],
+        claimed_treasures: [],
       })
       .eq("session_id", gameSession.id);
 
-    // Сбрасываем сессию
+    // Очищаем рынок при рестарте
+    await supabase
+      .from("market_listings")
+      .delete()
+      .eq("session_id", gameSession.id);
+
     await supabase
       .from("game_sessions")
       .update({
         status: "waiting",
         started_at: null,
         timer_duration: 1800,
+        treasure_items: [],
       })
       .eq("id", gameSession.id);
 
@@ -780,6 +1009,10 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         setPlayer,
         setIsAdmin,
         setGameSession,
+        marketListings,
+        listItemForSale,
+        buyFromMarket,
+        removeFromMarket,
       }}
     >
       {children}

@@ -26,6 +26,16 @@ export interface ShopItem {
   image?: string;
 }
 
+export interface MarketListing {
+  id: string;
+  seller_id: string;
+  seller_nickname: string;
+  item: ShopItem;
+  price: number;
+  created_at: string;
+}
+
+
 export interface Mission {
   id: string;
   title: string;
@@ -50,4 +60,5 @@ export interface GameSession {
   createdAt: Date;
   status?: 'waiting' | 'active' | 'finished' | 'paused';
   treasure_items?: string[];
+  market_listings?: MarketListing[];
 }

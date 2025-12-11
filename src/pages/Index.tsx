@@ -9,6 +9,7 @@ import { AdminPanel } from "@/components/AdminPanel";
 import { Footer } from "@/components/Footer";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import { MissionsPanel } from "@/components/MissionsPanel";
+import { MarketTab } from "@/components/MarketTab";
 
 const GameContent = () => {
   const { player, isAdmin, setPlayer, setIsAdmin, setGameSession, removePlayer } = useGame();
@@ -73,6 +74,7 @@ const GameContent = () => {
           {activeTab === "home" && <HomeTab />}
           {activeTab === "cards" && <CardsTab />}
           {activeTab === "shop" && <ShopTab />}
+          {activeTab === "market" && <MarketTab />}
           {activeTab === "missions" && <MissionsPanel />}
         </div>
       </main>

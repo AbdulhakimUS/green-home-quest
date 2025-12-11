@@ -9,7 +9,9 @@ import {
   Target,
   Gift,
   LogOut,
+  Store,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useGame } from "@/contexts/GameContext";
@@ -112,6 +114,16 @@ export const GameNavbar = ({
             <CreditCard className="w-6 h-6 lg:mr-2" />
             <span className="text-xs mt-1 lg:text-sm lg:mt-0">Карты</span>
           </Button>
+          <Button
+            variant={activeTab === "market" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => onTabChange("market")}
+            className="gap-1"
+          >
+            <Store className="h-4 w-4" />
+            <span className="hidden sm:inline">Рынок</span>
+          </Button>
+
           <Button
             variant={activeTab === "missions" ? "default" : "ghost"}
             onClick={() => onTabChange("missions")}
