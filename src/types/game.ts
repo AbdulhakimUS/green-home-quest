@@ -30,12 +30,14 @@ export interface ShopItem {
 
 export interface MarketListing {
   id: string;
+  session_id: string;
   seller_id: string;
   seller_nickname: string;
   item: ShopItem;
   price: number;
   created_at: string;
 }
+
 
 export interface Mission {
   id: string;
