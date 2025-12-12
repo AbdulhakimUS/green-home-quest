@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -77,13 +77,16 @@ export const MarketTab = () => {
   };
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-4 sm:space-y-6 animate-fade-in">
       {/* Заголовок */}
       <div className="text-center space-y-2">
         <ShoppingCart className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-primary" />
         <h2 className="text-xl sm:text-2xl font-bold">Рынок</h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm sm:text-base text-muted-foreground">
           Покупайте и продавайте предметы другим игрокам
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Комиссия: 7% с продажи
         </p>
       </div>
 
@@ -208,83 +211,77 @@ export const MarketTab = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Статистика рынка */}
-      <div className="grid grid-cols-2 gap-2">
-        <Card>
-          <CardContent className="p-3 text-center">
-            <p className="text-2xl font-bold text-primary">{marketListings.length}</p>
-            <p className="text-xs text-muted-foreground">Всего лотов</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 text-center">
-            <p className="text-2xl font-bold text-primary">{filteredListings.length}</p>
-            <p className="text-xs text-muted-foreground">В категории</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Список лотов по категориям */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-xs">
+            {categories.find(c => c.id === activeCategory)?.icon}
+          </Badge>
+          <span className="text-sm font-medium text-muted-foreground">
+            {categories.find(c => c.id === activeCategory)?.name}
+          </span>
+          <Badge variant="secondary" className="ml-auto text-xs">{filteredListings.length} лотов</Badge>
+        </div>
 
-      {/* Список лотов */}
-      <div className="space-y-2">
-        <h3 className="font-semibold flex items-center gap-2">
-          {categories.find(c => c.id === activeCategory)?.icon}
-          {categories.find(c => c.id === activeCategory)?.name}
-          <Badge variant="secondary" className="ml-auto">{filteredListings.length}</Badge>
-        </h3>
-        
-        {filteredListings.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-              <p className="text-muted-foreground">Нет лотов в этой категории</p>
-              <p className="text-xs text-muted-foreground mt-1">Станьте первым продавцом!</p>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredListings.map((listing) => (
-            <Card key={listing.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{listing.item.name}</p>
-                    <p className="text-lg font-bold text-primary">{formatMoney(listing.price)}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-xs">
-                        Тир {listing.item.tier}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        от {listing.seller_nickname}
-                      </span>
-                    </div>
-                  </div>
-                  {listing.seller_id === player.id ? (
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => removeFromMarket(listing.id)}
-                    >
-                      Убрать
-                    </Button>
-                  ) : (
-                    <Button 
-                      size="sm"
-                      onClick={() => buyFromMarket(listing.id)}
-                      disabled={player.money < listing.price || gameSession?.status !== "active"}
-                    >
-                      Купить
-                    </Button>
-                  )}
-                </div>
+        <div className="grid gap-3 sm:gap-4">
+          {filteredListings.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-muted-foreground">Нет лотов в этой категории</p>
+                <p className="text-xs text-muted-foreground mt-1">Станьте первым продавцом!</p>
               </CardContent>
             </Card>
-          ))
-        )}
+          ) : (
+            filteredListings.map((listing) => (
+              <Card key={listing.id} className="hover-scale transition-all">
+                <CardHeader className="p-3 sm:p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="flex flex-wrap items-center gap-2 text-sm sm:text-base">
+                        {listing.item.name}
+                        <Badge variant="outline" className="text-[10px] sm:text-xs">
+                          Тир {listing.item.tier}
+                        </Badge>
+                      </CardTitle>
+                      <CardDescription className="mt-1 text-xs">
+                        от {listing.seller_nickname}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-3 sm:p-4 pt-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex gap-3 text-xs text-muted-foreground">
+                      <span>⭐ {listing.item.efficiency}/10</span>
+                      <span>🌿 {listing.item.ecology}/10</span>
+                    </div>
+                    {listing.seller_id === player.id ? (
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => removeFromMarket(listing.id)}
+                        className="min-w-[100px] text-xs sm:text-sm w-full sm:w-auto"
+                      >
+                        Убрать
+                      </Button>
+                    ) : (
+                      <Button 
+                        size="sm"
+                        onClick={() => buyFromMarket(listing.id)}
+                        disabled={player.money < listing.price || gameSession?.status !== "active"}
+                        className="min-w-[100px] text-xs sm:text-sm w-full sm:w-auto"
+                      >
+                        Купить {formatMoney(listing.price)}
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
-
-      {/* Комиссия */}
-      <p className="text-xs text-center text-muted-foreground">
-        Комиссия рынка: 7% с продажи
-      </p>
     </div>
   );
 };
