@@ -10,9 +10,9 @@ export interface Player {
   session_id?: string;
   oxygen: number;
   completed_missions: string[];
-  claimed_treasures?: string[];
-  claimed_item_rewards?: number[]; // пороги, за которые уже получена награда
-  all_treasures_claimed?: boolean; // получена ли награда за все клады
+  claimed_treasures: string[];
+  claimed_item_rewards: number[];
+  all_treasures_claimed: boolean;
 }
 
 export interface ShopItem {
@@ -37,7 +37,6 @@ export interface MarketListing {
   price: number;
   created_at: string;
 }
-
 
 export interface Mission {
   id: string;
