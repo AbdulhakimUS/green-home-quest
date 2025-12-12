@@ -116,12 +116,10 @@ export const GameNavbar = ({
           </Button>
           <Button
             variant={activeTab === "market" ? "default" : "ghost"}
-            size="sm"
             onClick={() => onTabChange("market")}
-            className="gap-1"
-          >
+            className="flex-col h-auto py-2 lg:w-full lg:flex-row lg:justify-start">
             <Store className="h-4 w-4" />
-            <span className="hidden sm:inline">Рынок</span>
+            <span className="text-xs mt-1 lg:text-sm lg:mt-0">Рынок</span>
           </Button>
 
           <Button
