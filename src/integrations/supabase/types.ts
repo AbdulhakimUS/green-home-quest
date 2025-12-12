@@ -26,6 +26,7 @@ export type Database = {
           started_at: string | null
           status: string
           timer_duration: number | null
+          treasure_items: Json | null
           updated_at: string | null
         }
         Insert: {
@@ -39,6 +40,7 @@ export type Database = {
           started_at?: string | null
           status?: string
           timer_duration?: number | null
+          treasure_items?: Json | null
           updated_at?: string | null
         }
         Update: {
@@ -52,12 +54,61 @@ export type Database = {
           started_at?: string | null
           status?: string
           timer_duration?: number | null
+          treasure_items?: Json | null
           updated_at?: string | null
         }
         Relationships: []
       }
+      market_listings: {
+        Row: {
+          created_at: string | null
+          id: string
+          item: Json
+          price: number
+          seller_id: string
+          seller_nickname: string
+          session_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          item: Json
+          price: number
+          seller_id: string
+          seller_nickname: string
+          session_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          item?: Json
+          price?: number
+          seller_id?: string
+          seller_nickname?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_listings_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_listings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "game_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       players: {
         Row: {
+          all_treasures_claimed: boolean | null
+          claimed_item_rewards: Json | null
+          claimed_treasures: Json | null
           completed_missions: Json | null
           created_at: string | null
           house_level: number | null
@@ -73,6 +124,9 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          all_treasures_claimed?: boolean | null
+          claimed_item_rewards?: Json | null
+          claimed_treasures?: Json | null
           completed_missions?: Json | null
           created_at?: string | null
           house_level?: number | null
@@ -88,6 +142,9 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          all_treasures_claimed?: boolean | null
+          claimed_item_rewards?: Json | null
+          claimed_treasures?: Json | null
           completed_missions?: Json | null
           created_at?: string | null
           house_level?: number | null

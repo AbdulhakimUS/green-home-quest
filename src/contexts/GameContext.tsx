@@ -9,7 +9,7 @@ import React, {
 import { CardType, ShopItem } from "@/types/game";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { shopItems } from "@/data/shopItems";
+import { shopItems, getAllItems } from "@/data/shopItems";
 
 const ALL_TREASURES_BONUS = 20000;
 const ITEM_COUNT_REWARDS = [
@@ -38,9 +38,9 @@ interface Player {
   inventory: ShopItem[];
   oxygen: number;
   completed_missions: string[];
-  claimed_treasures?: string[];
-  claimed_item_rewards?: number[];
-  all_treasures_claimed?: boolean;
+  claimed_treasures: string[];
+  claimed_item_rewards: number[];
+  all_treasures_claimed: boolean;
 }
 
 interface GameSession {
@@ -52,7 +52,7 @@ interface GameSession {
   active_events: any[];
   admin_reconnect_allowed: boolean;
   initial_balance: number;
-  treasure_items?: string[];
+  treasure_items: string[];
 }
 
 interface GameContextType {
@@ -105,16 +105,12 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           .from("game_sessions")
           .select("*")
           .eq("id", savedSessionId)
-          .single();
+          .maybeSingle();
 
         if (sessionData) {
           setGameSession({
             ...sessionData,
-            status: sessionData.status as
-              | "waiting"
-              | "active"
-              | "finished"
-              | "paused",
+            status: sessionData.status as "waiting" | "active" | "finished" | "paused",
             active_events: (sessionData.active_events as any) || [],
             treasure_items: (sessionData.treasure_items as string[]) || [],
           });
@@ -127,21 +123,17 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
               .from("players")
               .select("*")
               .eq("id", savedPlayerId)
-              .single();
+              .maybeSingle();
 
             if (playerData) {
               setPlayer({
                 ...playerData,
                 selected_card: (playerData.selected_card as CardType) || null,
                 inventory: (playerData.inventory as any as ShopItem[]) || [],
-                completed_missions:
-                  (playerData.completed_missions as any as string[]) || [],
-                claimed_treasures:
-                  (playerData.claimed_treasures as string[]) || [],
-                claimed_item_rewards:
-                  (playerData.claimed_item_rewards as number[]) || [],
-                all_treasures_claimed:
-                  playerData.all_treasures_claimed || false,
+                completed_missions: (playerData.completed_missions as any as string[]) || [],
+                claimed_treasures: (playerData.claimed_treasures as string[]) || [],
+                claimed_item_rewards: (playerData.claimed_item_rewards as number[]) || [],
+                all_treasures_claimed: playerData.all_treasures_claimed || false,
               });
             }
           }
@@ -239,7 +231,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         .eq("session_id", gameSession.id);
       if (data) {
         setMarketListings(
-          data.map((l) => ({ ...l, item: l.item as any as ShopItem }))
+          data.map((l: any) => ({ ...l, item: l.item as ShopItem }))
         );
       }
     };
@@ -280,9 +272,12 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           filter: `id=eq.${gameSession.id}`,
         },
         (payload) => {
+          const newData = payload.new as any;
           setGameSession({
-            ...(payload.new as GameSession),
-            treasure_items: (payload.new as any).treasure_items || [],
+            ...newData,
+            status: newData.status as "waiting" | "active" | "finished" | "paused",
+            active_events: newData.active_events || [],
+            treasure_items: (newData.treasure_items as string[]) || [],
           });
         }
       )
@@ -366,11 +361,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    if (item.basePrice >= 1500 && player.house_level < 3) {
-      toast({ title: "Требуется уровень дома 3+", variant: "destructive" });
-      return;
-    }
-
     const existingItem = player.inventory.find((i) => i.id === item.id);
     let updatedInventory: ShopItem[];
     let price: number;
@@ -393,13 +383,38 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    let houseIncrease = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5][
-      Math.min(item.tier - 1, 5)
-    ];
+    let houseIncrease = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5][Math.min(item.tier - 1, 5)];
     let oxygenIncrease = item.category === "greenery" ? item.tier * 2 : 0;
     let newMoney = player.money - price;
     const newHouseLevel = Math.min(25, player.house_level + houseIncrease);
     const newOxygen = player.oxygen + oxygenIncrease;
+
+    // Проверяем клад
+    let claimedTreasures = [...(player.claimed_treasures || [])];
+    let allTreasuresClaimed = player.all_treasures_claimed || false;
+    
+    const isTreasure = gameSession.treasure_items?.includes(item.id) && !claimedTreasures.includes(item.id);
+    
+    if (isTreasure) {
+      newMoney += 5000;
+      claimedTreasures.push(item.id);
+      
+      if (claimedTreasures.length >= 4 && !allTreasuresClaimed) {
+        newMoney += ALL_TREASURES_BONUS;
+        allTreasuresClaimed = true;
+      }
+    }
+
+    // Проверяем награды за количество предметов
+    let claimedItemRewards = [...(player.claimed_item_rewards || [])];
+    const totalItems = updatedInventory.reduce((s, i) => s + i.level, 0);
+    
+    for (const { threshold, reward } of ITEM_COUNT_REWARDS) {
+      if (totalItems >= threshold && !claimedItemRewards.includes(threshold)) {
+        newMoney += reward;
+        claimedItemRewards.push(threshold);
+      }
+    }
 
     setPlayer({
       ...player,
@@ -407,6 +422,9 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       house_level: newHouseLevel,
       oxygen: newOxygen,
       inventory: updatedInventory,
+      claimed_treasures: claimedTreasures,
+      claimed_item_rewards: claimedItemRewards,
+      all_treasures_claimed: allTreasuresClaimed,
     });
 
     try {
@@ -417,9 +435,13 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           house_level: newHouseLevel,
           oxygen: newOxygen,
           inventory: updatedInventory as any,
+          claimed_treasures: claimedTreasures as any,
+          claimed_item_rewards: claimedItemRewards as any,
+          all_treasures_claimed: allTreasuresClaimed,
         })
         .eq("id", player.id);
-      supabase
+        
+      await supabase
         .from("purchase_history")
         .insert({
           player_id: player.id,
@@ -430,68 +452,26 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           level: newLevel,
           price,
         });
+        
       toast({
         title: "Покупка успешна!",
         description: `${item.name} (Ур. ${newLevel})`,
       });
 
-      // Клады
-      if (
-        gameSession.treasure_items?.includes(item.id) &&
-        !player.claimed_treasures?.includes(item.id)
-      ) {
-        newMoney += 5000;
-        const newClaimed = [...(player.claimed_treasures || []), item.id];
-        setPlayer((prev) =>
-          prev
-            ? { ...prev, money: newMoney, claimed_treasures: newClaimed }
-            : null
-        );
-        await supabase
-          .from("players")
-          .update({ money: newMoney, claimed_treasures: newClaimed })
-          .eq("id", player.id);
+      if (isTreasure) {
         toast({ title: "🎁 Клад найден!", description: "+$5,000" });
-
-        if (newClaimed.length >= 4 && !player.all_treasures_claimed) {
-          newMoney += ALL_TREASURES_BONUS;
-          setPlayer((prev) =>
-            prev
-              ? { ...prev, money: newMoney, all_treasures_claimed: true }
-              : null
-          );
-          await supabase
-            .from("players")
-            .update({ money: newMoney, all_treasures_claimed: true })
-            .eq("id", player.id);
+        
+        if (claimedTreasures.length >= 4 && allTreasuresClaimed) {
           toast({
-            title: "🏆 Все клады!",
+            title: "🏆 Все клады найдены!",
             description: `+$${ALL_TREASURES_BONUS.toLocaleString()}`,
           });
         }
       }
-
+      
       // Награды за количество
-      const totalItems = updatedInventory.reduce((s, i) => s + i.level, 0);
       for (const { threshold, reward } of ITEM_COUNT_REWARDS) {
-        if (
-          totalItems >= threshold &&
-          !player.claimed_item_rewards?.includes(threshold)
-        ) {
-          newMoney += reward;
-          const newRewards = [
-            ...(player.claimed_item_rewards || []),
-            threshold,
-          ];
-          setPlayer((prev) =>
-            prev
-              ? { ...prev, money: newMoney, claimed_item_rewards: newRewards }
-              : null
-          );
-          await supabase
-            .from("players")
-            .update({ money: newMoney, claimed_item_rewards: newRewards })
-            .eq("id", player.id);
+        if (totalItems >= threshold && player.claimed_item_rewards && !player.claimed_item_rewards.includes(threshold)) {
           toast({
             title: `🎉 ${threshold} предметов!`,
             description: `+$${reward.toLocaleString()}`,
@@ -586,7 +566,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         .from("players")
         .select("money")
         .eq("id", listing.seller_id)
-        .single();
+        .maybeSingle();
       if (seller)
         await supabase
           .from("players")
@@ -689,11 +669,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const startGame = async (duration: number) => {
     if (!gameSession || !isAdmin) return;
 
-    const allItems = [
-      ...shopItems.energy,
-      ...shopItems.water,
-      ...shopItems.greenery,
-    ];
+    const allItems = getAllItems();
     const treasureItems = [...allItems]
       .sort(() => Math.random() - 0.5)
       .slice(0, 4)
@@ -705,7 +681,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         status: "active",
         started_at: new Date().toISOString(),
         timer_duration: duration * 60,
-        treasure_items: treasureItems,
+        treasure_items: treasureItems as any,
       })
       .eq("id", gameSession.id);
     toast({ title: "Игра началась!", description: `${duration} минут` });

@@ -1,92 +1,102 @@
-import { Target, CheckCircle2, Circle } from "lucide-react";
+import { Target, CheckCircle2, Circle, Gift } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useGame } from "@/contexts/GameContext";
 import { Mission, Player } from "@/types/game";
 import { toast } from "sonner";
-import { DIFFICULTY_MULTIPLIER, BASE_MISSION_TARGETS } from "@/data/gameConfig";
+import { formatMoney } from "@/lib/formatters";
 
-// Функция для масштабирования целей миссий
-const scaleTarget = (base: number): number => Math.floor(base * DIFFICULTY_MULTIPLIER);
-
-// Генерируем миссии с учётом множителя сложности
-const createMissions = (): Mission[] => [
+// Миссии с фиксированными целями
+const missions: Mission[] = [
   {
     id: "house_5",
     title: "Начальное развитие",
-    description: `Построй дом до уровня ${scaleTarget(BASE_MISSION_TARGETS.house_5)}`,
-    reward: 5000 * DIFFICULTY_MULTIPLIER,
-    condition: (player: Player) => player.house_level >= scaleTarget(BASE_MISSION_TARGETS.house_5)
+    description: "Построй дом до уровня 5",
+    reward: 5000,
+    condition: (player: Player) => player.house_level >= 5
   },
   {
-    id: "money_50k",
+    id: "money_30k",
     title: "Первый капитал",
-    description: `Собери ${scaleTarget(BASE_MISSION_TARGETS.money_50k).toLocaleString()}$`,
-    reward: 10000 * DIFFICULTY_MULTIPLIER,
-    condition: (player: Player) => player.money >= scaleTarget(BASE_MISSION_TARGETS.money_50k)
+    description: "Накопи $30,000",
+    reward: 3000,
+    condition: (player: Player) => player.money >= 30000
   },
   {
     id: "all_categories",
     title: "Разносторонний",
     description: "Купи предметы из всех 3 категорий",
-    reward: 5000 * DIFFICULTY_MULTIPLIER,
+    reward: 5000,
     condition: (player: Player) => {
       const categories = new Set(player.inventory.map(i => i.category));
       return categories.size === 3;
     }
   },
   {
-    id: "house_10",
-    title: "Опытный строитель",
-    description: `Построй дом до уровня ${scaleTarget(BASE_MISSION_TARGETS.house_10)}`,
-    reward: 10000 * DIFFICULTY_MULTIPLIER,
-    condition: (player: Player) => player.house_level >= scaleTarget(BASE_MISSION_TARGETS.house_10)
+    id: "items_5",
+    title: "Начинающий коллекционер",
+    description: "Собери 5 разных предметов",
+    reward: 3000,
+    condition: (player: Player) => player.inventory.length >= 5
   },
   {
-    id: "house_15",
-    title: "Мастер строительства",
-    description: `Построй дом до уровня ${scaleTarget(BASE_MISSION_TARGETS.house_15)}`,
-    reward: 15000 * DIFFICULTY_MULTIPLIER,
-    condition: (player: Player) => player.house_level >= scaleTarget(BASE_MISSION_TARGETS.house_15)
+    id: "house_10",
+    title: "Опытный строитель",
+    description: "Построй дом до уровня 10",
+    reward: 10000,
+    condition: (player: Player) => player.house_level >= 10
+  },
+  {
+    id: "oxygen_30",
+    title: "Свежий воздух",
+    description: "Достигни 30 единиц кислорода",
+    reward: 5000,
+    condition: (player: Player) => player.oxygen >= 30
   },
   {
     id: "items_10",
     title: "Коллекционер",
-    description: `Собери ${scaleTarget(BASE_MISSION_TARGETS.items_10)} предметов`,
-    reward: 10000 * DIFFICULTY_MULTIPLIER,
-    condition: (player: Player) => player.inventory.length >= scaleTarget(BASE_MISSION_TARGETS.items_10)
+    description: "Собери 10 разных предметов",
+    reward: 8000,
+    condition: (player: Player) => player.inventory.length >= 10
   },
   {
-    id: "oxygen_50",
+    id: "house_15",
+    title: "Мастер строительства",
+    description: "Построй дом до уровня 15",
+    reward: 15000,
+    condition: (player: Player) => player.house_level >= 15
+  },
+  {
+    id: "oxygen_60",
     title: "Дыши полной грудью",
-    description: `Достигни ${scaleTarget(BASE_MISSION_TARGETS.oxygen_50)} единиц кислорода`,
-    reward: 8000 * DIFFICULTY_MULTIPLIER,
-    condition: (player: Player) => player.oxygen >= scaleTarget(BASE_MISSION_TARGETS.oxygen_50)
+    description: "Достигни 60 единиц кислорода",
+    reward: 10000,
+    condition: (player: Player) => player.oxygen >= 60
   },
   {
-    id: "money_200k",
-    title: "Богач",
-    description: `Собери ${scaleTarget(BASE_MISSION_TARGETS.money_200k).toLocaleString()}$`,
-    reward: 20000 * DIFFICULTY_MULTIPLIER,
-    condition: (player: Player) => player.money >= scaleTarget(BASE_MISSION_TARGETS.money_200k)
+    id: "items_15",
+    title: "Опытный коллекционер",
+    description: "Собери 15 разных предметов",
+    reward: 12000,
+    condition: (player: Player) => player.inventory.length >= 15
   },
   {
     id: "house_20",
     title: "Эксперт строительства",
-    description: `Построй дом до уровня ${scaleTarget(BASE_MISSION_TARGETS.house_20)}`,
-    reward: 20000 * DIFFICULTY_MULTIPLIER,
-    condition: (player: Player) => player.house_level >= scaleTarget(BASE_MISSION_TARGETS.house_20)
+    description: "Построй дом до уровня 20",
+    reward: 20000,
+    condition: (player: Player) => player.house_level >= 20
   },
   {
     id: "max_level",
     title: "Максимальное развитие",
-    description: `Достигни максимального уровня дома (${scaleTarget(BASE_MISSION_TARGETS.max_level)})`,
-    reward: 50000 * DIFFICULTY_MULTIPLIER,
-    condition: (player: Player) => player.house_level >= scaleTarget(BASE_MISSION_TARGETS.max_level)
+    description: "Достигни максимального уровня дома (25)",
+    reward: 50000,
+    condition: (player: Player) => player.house_level >= 25
   }
 ];
-
-const missions = createMissions();
 
 export const MissionsPanel = () => {
   const { player, claimMissionReward, gameSession } = useGame();
@@ -96,21 +106,33 @@ export const MissionsPanel = () => {
       toast.error("Миссия уже выполнена");
       return;
     }
+    if (gameSession?.status !== "active") {
+      toast.error("Игра не активна");
+      return;
+    }
     await claimMissionReward(missionId, reward);
   };
 
   if (!player) return null;
 
+  const completedCount = player.completed_missions.length;
+  const totalMissions = missions.length;
+
   return (
     <Card className="animate-fade-in">
       <CardHeader className="p-3 sm:p-6">
-        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-          <Target className="w-4 h-4 sm:w-5 sm:h-5 text-info" />
-          Миссии {DIFFICULTY_MULTIPLIER > 1 && `(×${DIFFICULTY_MULTIPLIER})`}
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-base sm:text-lg">
+            <Target className="w-4 h-4 sm:w-5 sm:h-5 text-info" />
+            Миссии
+          </div>
+          <Badge variant="secondary" className="text-xs">
+            {completedCount}/{totalMissions}
+          </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-3 sm:p-6 pt-0">
-        <div className="space-y-2 sm:space-y-3">
+        <div className="space-y-2 sm:space-y-3 max-h-[400px] overflow-y-auto">
           {missions
             .sort((a, b) => {
               const aCompleted = player.completed_missions.includes(a.id);
@@ -125,46 +147,50 @@ export const MissionsPanel = () => {
               return 0;
             })
             .map((mission) => {
-            const isCompleted = player.completed_missions.includes(mission.id);
-            const canComplete = !isCompleted && mission.condition(player);
+              const isCompleted = player.completed_missions.includes(mission.id);
+              const canComplete = !isCompleted && mission.condition(player);
 
-            return (
-              <div
-                key={mission.id}
-                className={`p-2.5 sm:p-3 rounded-lg border ${
-                  isCompleted
-                    ? "bg-success/10 border-success/20"
-                    : canComplete
-                    ? "bg-primary/10 border-primary/20"
-                    : "bg-card"
-                }`}
-              >
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="mt-0.5 sm:mt-1 flex-shrink-0">
-                    {isCompleted ? (
-                      <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
-                    ) : (
-                      <Circle className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+              return (
+                <div
+                  key={mission.id}
+                  className={`p-2.5 sm:p-3 rounded-lg border transition-colors ${
+                    isCompleted
+                      ? "bg-success/10 border-success/20"
+                      : canComplete
+                      ? "bg-primary/10 border-primary/20 animate-pulse"
+                      : "bg-card border-border"
+                  }`}
+                >
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="mt-0.5 sm:mt-1 flex-shrink-0">
+                      {isCompleted ? (
+                        <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
+                      ) : canComplete ? (
+                        <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-primary animate-bounce" />
+                      ) : (
+                        <Circle className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-xs sm:text-sm">{mission.title}</h4>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">{mission.description}</p>
+                      <p className="text-[10px] sm:text-xs text-primary mt-0.5 sm:mt-1 font-medium">
+                        Награда: {formatMoney(mission.reward)}
+                      </p>
+                    </div>
+                    {canComplete && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleClaimReward(mission.id, mission.reward)}
+                        className="flex-shrink-0 text-xs"
+                      >
+                        Забрать
+                      </Button>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-xs sm:text-sm">{mission.title}</h4>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">{mission.description}</p>
-                    <p className="text-[10px] sm:text-xs text-primary mt-0.5 sm:mt-1">Награда: ${mission.reward.toLocaleString()}</p>
-                  </div>
-                  {canComplete && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleClaimReward(mission.id, mission.reward)}
-                      className="flex-shrink-0 text-xs"
-                    >
-                      Забрать
-                    </Button>
-                  )}
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       </CardContent>
     </Card>
