@@ -1,4 +1,4 @@
-import { ShoppingBag, AlertCircle, Gift, Sparkles } from "lucide-react";
+import { ShoppingBag, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -61,10 +61,7 @@ export const ShopTab = () => {
     return existingItem ? existingItem.level : 0;
   };
 
-  // Проверяем, есть ли клад в этом предмете (только если игрок его еще не нашел)
-  const hasTreasure = (item: ShopItem) => {
-    return treasureItems.includes(item.id) && !claimedTreasures.includes(item.id);
-  };
+  // Клад скрыт - игрок узнает только после покупки
 
   // Группируем предметы по тирам
   const groupedItems = items.reduce((acc, item) => {
@@ -97,24 +94,6 @@ export const ShopTab = () => {
           </p>
         </div>
 
-        {/* Информация о кладах */}
-        <Card className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-yellow-500/30">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center gap-3">
-              <Gift className="w-8 h-8 text-yellow-500" />
-              <div>
-                <p className="font-semibold text-sm">Система кладов</p>
-                <p className="text-xs text-muted-foreground">
-                  В 4 случайных предметах спрятаны клады по $5,000. 
-                  Найди все 4 и получи бонус $20,000!
-                </p>
-                <p className="text-xs text-primary mt-1">
-                  Найдено: {claimedTreasures.length}/4
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Предметы по тирам */}
         {Object.entries(groupedItems).map(([tier, tierItems]) => (
@@ -125,30 +104,26 @@ export const ShopTab = () => {
             </div>
             
             <div className="grid gap-3 sm:gap-4">
-              {tierItems.map((item) => {
+            {tierItems.map((item) => {
                 const cost = getCost(item);
                 const level = getLevel(item);
                 const canAfford = player.money >= cost;
-                const itemHasTreasure = hasTreasure(item);
 
                 return (
                   <Card 
                     key={item.id} 
-                    className={`hover-scale cursor-pointer transition-all ${!canAfford ? "opacity-60" : ""} ${itemHasTreasure ? "ring-2 ring-yellow-500/50" : ""}`}
+                    className={`hover-scale cursor-pointer transition-all ${!canAfford ? "opacity-60" : ""}`}
                     onClick={() => setSelectedItem(item)}
                   >
                     <CardHeader className="p-3 sm:p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <CardTitle className="flex flex-wrap items-center gap-2 text-sm sm:text-base">
+                        <CardTitle className="flex flex-wrap items-center gap-2 text-sm sm:text-base">
                             {item.name}
                             {level > 0 && (
                               <Badge variant="default" className="text-[10px] sm:text-xs">
                                 Ур. {level}
                               </Badge>
-                            )}
-                            {itemHasTreasure && (
-                              <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />
                             )}
                           </CardTitle>
                           <CardDescription className="mt-1 text-xs line-clamp-2">
