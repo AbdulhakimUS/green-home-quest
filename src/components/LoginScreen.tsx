@@ -163,7 +163,11 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
         house_level: 1,
         selected_card: null,
         inventory: [],
+        oxygen: 0,
+        completed_missions: [],
         claimed_treasures: [],
+        claimed_item_rewards: [],
+        all_treasures_claimed: false,
       })
       .select()
       .single();
