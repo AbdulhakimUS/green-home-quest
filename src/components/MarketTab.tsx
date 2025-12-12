@@ -79,15 +79,14 @@ export const MarketTab = () => {
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
       {/* Заголовок */}
-      <div className="text-center space-y-2">
-        <ShoppingCart className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-primary" />
-        <h2 className="text-xl sm:text-2xl font-bold">Рынок</h2>
-        <p className="text-sm sm:text-base text-muted-foreground">
-          Покупайте и продавайте предметы другим игрокам
-        </p>
-        <p className="text-xs text-muted-foreground">
-          Комиссия: 7% с продажи
-        </p>
+      <div className="flex items-center gap-3">
+        <ShoppingCart className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold">Рынок</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Покупайте и продавайте • Комиссия: 7%
+          </p>
+        </div>
       </div>
 
       {/* Категории */}
