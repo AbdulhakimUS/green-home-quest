@@ -654,6 +654,10 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     );
     if (!listing) return;
 
+    const oldPlayer = player;
+    const oldListings = marketListings;
+
+    // Обновляем инвентарь - возвращаем предмет
     const existing = player.inventory.find((i) => i.id === listing.item.id);
     const updatedInv = existing
       ? player.inventory.map((i) =>
@@ -661,17 +665,22 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         )
       : [...player.inventory, { ...listing.item, level: 1 }];
 
+    // Оптимистично обновляем UI
     setPlayer((prev) => (prev ? { ...prev, inventory: updatedInv } : null));
+    setMarketListings((prev) => prev.filter((l) => l.id !== listingId));
 
     try {
+      await supabase.from("market_listings").delete().eq("id", listingId);
       await supabase
         .from("players")
         .update({ inventory: updatedInv as any })
         .eq("id", player.id);
-      await supabase.from("market_listings").delete().eq("id", listingId);
-      toast({ title: "Лот снят" });
+      toast({ title: "Лот снят", description: `${listing.item.name} вернулся в инвентарь` });
     } catch {
-      setPlayer(player);
+      // Откатываем при ошибке
+      setPlayer(oldPlayer);
+      setMarketListings(oldListings);
+      toast({ title: "Ошибка снятия лота", variant: "destructive" });
     }
   };
 
