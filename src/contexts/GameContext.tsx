@@ -545,37 +545,67 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     const commission = Math.floor(listing.price * 0.07);
     const sellerEarns = listing.price - commission;
 
+    // Обновляем инвентарь покупателя
     const existing = player.inventory.find((i) => i.id === listing.item.id);
-    const updatedInv = existing
+    const updatedBuyerInv = existing
       ? player.inventory.map((i) =>
           i.id === listing.item.id ? { ...i, level: i.level + 1 } : i
         )
       : [...player.inventory, { ...listing.item, level: 1 }];
     const newMoney = player.money - listing.price;
 
+    // Оптимистичное обновление UI
     setPlayer((prev) =>
-      prev ? { ...prev, money: newMoney, inventory: updatedInv } : null
+      prev ? { ...prev, money: newMoney, inventory: updatedBuyerInv } : null
     );
+    
+    // Убираем лот из локального списка сразу
+    setMarketListings((prev) => prev.filter((l) => l.id !== listingId));
 
     try {
+      // 1. Удаляем лот с рынка ПЕРВЫМ (чтобы избежать дублирования)
+      const { error: deleteError } = await supabase
+        .from("market_listings")
+        .delete()
+        .eq("id", listingId);
+      
+      if (deleteError) throw deleteError;
+
+      // 2. Обновляем покупателя
       await supabase
         .from("players")
-        .update({ money: newMoney, inventory: updatedInv as any })
+        .update({ money: newMoney, inventory: updatedBuyerInv as any })
         .eq("id", player.id);
+
+      // 3. Обновляем продавца (только деньги, предмет уже был удален при выставлении)
       const { data: seller } = await supabase
         .from("players")
         .select("money")
         .eq("id", listing.seller_id)
         .maybeSingle();
-      if (seller)
+      
+      if (seller) {
         await supabase
           .from("players")
           .update({ money: seller.money + sellerEarns })
           .eq("id", listing.seller_id);
-      await supabase.from("market_listings").delete().eq("id", listingId);
+      }
+
       toast({ title: "Куплено!", description: listing.item.name });
-    } catch {
+    } catch (error) {
+      // Откатываем изменения при ошибке
       setPlayer(player);
+      // Перезагружаем рынок
+      const { data } = await supabase
+        .from("market_listings")
+        .select("*")
+        .eq("session_id", gameSession.id);
+      if (data) {
+        setMarketListings(
+          data.map((l: any) => ({ ...l, item: l.item as ShopItem }))
+        );
+      }
+      toast({ title: "Ошибка покупки", variant: "destructive" });
     }
   };
 
