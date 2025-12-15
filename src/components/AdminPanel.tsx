@@ -176,8 +176,18 @@ export const AdminPanel = () => {
               }}>
                 <span className="font-semibold">
                   {sessionStatus === 'waiting' && "Ожидание"}
-                  {sessionStatus === 'active' && `Игра идет: ${timeRemaining ? formatTime(timeRemaining) : ''}`}
-                  {sessionStatus === 'paused' && "Пауза"}
+                  {sessionStatus === 'active' && (
+                    <span className="flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      Осталось: {timeRemaining ? `${Math.floor(timeRemaining / 60)} мин ${timeRemaining % 60} сек` : ''}
+                    </span>
+                  )}
+                  {sessionStatus === 'paused' && (
+                    <span className="flex items-center gap-2">
+                      <Pause className="w-4 h-4" />
+                      Пауза — Осталось: {timeRemaining ? `${Math.floor(timeRemaining / 60)} мин` : ''}
+                    </span>
+                  )}
                   {sessionStatus === 'finished' && "Игра завершена"}
                 </span>
               </div>
