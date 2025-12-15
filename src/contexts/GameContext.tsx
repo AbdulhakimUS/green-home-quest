@@ -521,13 +521,25 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         .update({ inventory: updatedInv as any })
         .eq("id", player.id);
       
+      const itemToSave = {
+        id: item.id,
+        name: item.name,
+        category: item.category,
+        tier: item.tier,
+        level: 1,
+        basePrice: item.basePrice,
+        efficiency: item.efficiency,
+        ecology: item.ecology,
+        description: item.description,
+      };
+      
       const { data: newListing, error } = await supabase
         .from("market_listings")
         .insert({
           session_id: gameSession.id,
           seller_id: player.id,
           seller_nickname: player.nickname,
-          item: { ...item, level: 1 } as any,
+          item: itemToSave as any,
           price,
         })
         .select()
