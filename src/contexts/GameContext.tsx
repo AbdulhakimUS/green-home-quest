@@ -487,10 +487,13 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const listItemForSale = async (item: ShopItem, price: number) => {
     if (!player || !gameSession || gameSession.status !== "active") return;
 
-    // Проверка лимита - максимум 5 лотов от одного игрока
-    const playerListings = marketListings.filter((l) => l.seller_id === player.id);
-    if (playerListings.length >= 5) {
-      toast({ title: "Максимум 5 лотов", description: "Удалите старые лоты для выставления новых", variant: "destructive" });
+    // Проверка лимита - максимум 5 лотов в каждой категории от одного игрока
+    const playerListingsInCategory = marketListings.filter(
+      (l) => l.seller_id === player.id && (l.item as ShopItem).category === item.category
+    );
+    if (playerListingsInCategory.length >= 5) {
+      const categoryName = item.category === "energy" ? "Энергии" : item.category === "water" ? "Воде" : "Зелени";
+      toast({ title: `Максимум 5 лотов в ${categoryName}`, description: "Удалите старые лоты для выставления новых", variant: "destructive" });
       return;
     }
 
