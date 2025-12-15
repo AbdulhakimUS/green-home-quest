@@ -487,6 +487,13 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const listItemForSale = async (item: ShopItem, price: number) => {
     if (!player || !gameSession || gameSession.status !== "active") return;
 
+    // Проверка лимита - максимум 5 лотов от одного игрока
+    const playerListings = marketListings.filter((l) => l.seller_id === player.id);
+    if (playerListings.length >= 5) {
+      toast({ title: "Максимум 5 лотов", description: "Удалите старые лоты для выставления новых", variant: "destructive" });
+      return;
+    }
+
     const maxPrice = Math.floor(item.basePrice * 0.75);
     if (price > maxPrice) {
       toast({ title: `Макс. цена: $${maxPrice}`, variant: "destructive" });
@@ -513,7 +520,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         .from("players")
         .update({ inventory: updatedInv as any })
         .eq("id", player.id);
-      await supabase
+      
+      const { data: newListing, error } = await supabase
         .from("market_listings")
         .insert({
           session_id: gameSession.id,
@@ -521,10 +529,24 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           seller_nickname: player.nickname,
           item: { ...item, level: 1 } as any,
           price,
-        });
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Добавляем новый лот в локальное состояние
+      if (newListing) {
+        setMarketListings((prev) => [
+          ...prev,
+          { ...newListing, item: newListing.item as unknown as ShopItem }
+        ]);
+      }
+      
       toast({ title: "Выставлено!", description: `${item.name} за $${price}` });
     } catch {
       setPlayer(player);
+      toast({ title: "Ошибка выставления", variant: "destructive" });
     }
   };
 
