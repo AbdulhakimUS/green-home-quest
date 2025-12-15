@@ -9,6 +9,14 @@ import { formatMoney } from "@/lib/formatters";
 
 // Миссии с фиксированными целями
 const missions: Mission[] = [
+  // Миссии по уровню дома
+  {
+    id: "house_3",
+    title: "Первый шаг",
+    description: "Построй дом до уровня 3",
+    reward: 2000,
+    condition: (player: Player) => player.house_level >= 3
+  },
   {
     id: "house_5",
     title: "Начальное развитие",
@@ -17,28 +25,11 @@ const missions: Mission[] = [
     condition: (player: Player) => player.house_level >= 5
   },
   {
-    id: "money_30k",
-    title: "Первый капитал",
-    description: "Накопи $30,000",
-    reward: 3000,
-    condition: (player: Player) => player.money >= 30000
-  },
-  {
-    id: "all_categories",
-    title: "Разносторонний",
-    description: "Купи предметы из всех 3 категорий",
-    reward: 5000,
-    condition: (player: Player) => {
-      const categories = new Set(player.inventory.map(i => i.category));
-      return categories.size === 3;
-    }
-  },
-  {
-    id: "items_5",
-    title: "Начинающий коллекционер",
-    description: "Собери 5 разных предметов",
-    reward: 3000,
-    condition: (player: Player) => player.inventory.length >= 5
+    id: "house_8",
+    title: "Уверенный рост",
+    description: "Построй дом до уровня 8",
+    reward: 7000,
+    condition: (player: Player) => player.house_level >= 8
   },
   {
     id: "house_10",
@@ -48,39 +39,11 @@ const missions: Mission[] = [
     condition: (player: Player) => player.house_level >= 10
   },
   {
-    id: "oxygen_30",
-    title: "Свежий воздух",
-    description: "Достигни 30 единиц кислорода",
-    reward: 5000,
-    condition: (player: Player) => player.oxygen >= 30
-  },
-  {
-    id: "items_10",
-    title: "Коллекционер",
-    description: "Собери 10 разных предметов",
-    reward: 8000,
-    condition: (player: Player) => player.inventory.length >= 10
-  },
-  {
     id: "house_15",
     title: "Мастер строительства",
     description: "Построй дом до уровня 15",
     reward: 15000,
     condition: (player: Player) => player.house_level >= 15
-  },
-  {
-    id: "oxygen_60",
-    title: "Дыши полной грудью",
-    description: "Достигни 60 единиц кислорода",
-    reward: 10000,
-    condition: (player: Player) => player.oxygen >= 60
-  },
-  {
-    id: "items_15",
-    title: "Опытный коллекционер",
-    description: "Собери 15 разных предметов",
-    reward: 12000,
-    condition: (player: Player) => player.inventory.length >= 15
   },
   {
     id: "house_20",
@@ -95,6 +58,164 @@ const missions: Mission[] = [
     description: "Достигни максимального уровня дома (25)",
     reward: 50000,
     condition: (player: Player) => player.house_level >= 25
+  },
+  
+  // Миссии по деньгам
+  {
+    id: "money_30k",
+    title: "Первый капитал",
+    description: "Накопи $30,000",
+    reward: 3000,
+    condition: (player: Player) => player.money >= 30000
+  },
+  {
+    id: "money_75k",
+    title: "Растущие сбережения",
+    description: "Накопи $75,000",
+    reward: 7000,
+    condition: (player: Player) => player.money >= 75000
+  },
+  {
+    id: "money_150k",
+    title: "Солидный капитал",
+    description: "Накопи $150,000",
+    reward: 12000,
+    condition: (player: Player) => player.money >= 150000
+  },
+  
+  // Миссии по предметам
+  {
+    id: "items_3",
+    title: "Первые покупки",
+    description: "Собери 3 разных предмета",
+    reward: 2000,
+    condition: (player: Player) => player.inventory.length >= 3
+  },
+  {
+    id: "items_5",
+    title: "Начинающий коллекционер",
+    description: "Собери 5 разных предметов",
+    reward: 3000,
+    condition: (player: Player) => player.inventory.length >= 5
+  },
+  {
+    id: "items_10",
+    title: "Коллекционер",
+    description: "Собери 10 разных предметов",
+    reward: 8000,
+    condition: (player: Player) => player.inventory.length >= 10
+  },
+  {
+    id: "items_15",
+    title: "Опытный коллекционер",
+    description: "Собери 15 разных предметов",
+    reward: 12000,
+    condition: (player: Player) => player.inventory.length >= 15
+  },
+  {
+    id: "items_20",
+    title: "Продвинутый коллекционер",
+    description: "Собери 20 разных предметов",
+    reward: 18000,
+    condition: (player: Player) => player.inventory.length >= 20
+  },
+  {
+    id: "items_30",
+    title: "Мастер коллекций",
+    description: "Собери 30 разных предметов",
+    reward: 30000,
+    condition: (player: Player) => player.inventory.length >= 30
+  },
+  
+  // Миссии по категориям
+  {
+    id: "all_categories",
+    title: "Разносторонний",
+    description: "Купи предметы из всех 3 категорий",
+    reward: 5000,
+    condition: (player: Player) => {
+      const categories = new Set(player.inventory.map(i => i.category));
+      return categories.size === 3;
+    }
+  },
+  {
+    id: "energy_5",
+    title: "Энергетик",
+    description: "Купи 5 предметов категории Энергия",
+    reward: 6000,
+    condition: (player: Player) => player.inventory.filter(i => i.category === 'energy').length >= 5
+  },
+  {
+    id: "water_5",
+    title: "Водный мастер",
+    description: "Купи 5 предметов категории Вода",
+    reward: 6000,
+    condition: (player: Player) => player.inventory.filter(i => i.category === 'water').length >= 5
+  },
+  {
+    id: "greenery_5",
+    title: "Зелёный друг",
+    description: "Купи 5 предметов категории Зелень",
+    reward: 6000,
+    condition: (player: Player) => player.inventory.filter(i => i.category === 'greenery').length >= 5
+  },
+  {
+    id: "energy_10",
+    title: "Энергетический магнат",
+    description: "Купи 10 предметов категории Энергия",
+    reward: 15000,
+    condition: (player: Player) => player.inventory.filter(i => i.category === 'energy').length >= 10
+  },
+  {
+    id: "water_10",
+    title: "Повелитель воды",
+    description: "Купи 10 предметов категории Вода",
+    reward: 15000,
+    condition: (player: Player) => player.inventory.filter(i => i.category === 'water').length >= 10
+  },
+  {
+    id: "greenery_10",
+    title: "Хранитель природы",
+    description: "Купи 10 предметов категории Зелень",
+    reward: 15000,
+    condition: (player: Player) => player.inventory.filter(i => i.category === 'greenery').length >= 10
+  },
+  
+  // Миссии по кислороду
+  {
+    id: "oxygen_15",
+    title: "Первый глоток",
+    description: "Достигни 15 единиц кислорода",
+    reward: 3000,
+    condition: (player: Player) => player.oxygen >= 15
+  },
+  {
+    id: "oxygen_30",
+    title: "Свежий воздух",
+    description: "Достигни 30 единиц кислорода",
+    reward: 5000,
+    condition: (player: Player) => player.oxygen >= 30
+  },
+  {
+    id: "oxygen_60",
+    title: "Дыши полной грудью",
+    description: "Достигни 60 единиц кислорода",
+    reward: 10000,
+    condition: (player: Player) => player.oxygen >= 60
+  },
+  {
+    id: "oxygen_100",
+    title: "Чистый воздух",
+    description: "Достигни 100 единиц кислорода",
+    reward: 20000,
+    condition: (player: Player) => player.oxygen >= 100
+  },
+  {
+    id: "oxygen_150",
+    title: "Кислородный рай",
+    description: "Достигни 150 единиц кислорода",
+    reward: 35000,
+    condition: (player: Player) => player.oxygen >= 150
   }
 ];
 
@@ -147,8 +268,9 @@ export const MissionsPanel = () => {
               return 0;
             })
             .map((mission) => {
-              const isCompleted = player.completed_missions.includes(mission.id);
-              const canComplete = !isCompleted && mission.condition(player);
+              const isCompleted = player.completed_missions?.includes(mission.id) ?? false;
+              const conditionMet = mission.condition(player);
+              const canComplete = !isCompleted && conditionMet;
 
               return (
                 <div
@@ -157,7 +279,7 @@ export const MissionsPanel = () => {
                     isCompleted
                       ? "bg-success/10 border-success/20"
                       : canComplete
-                      ? "bg-primary/10 border-primary/20 animate-pulse"
+                      ? "bg-primary/10 border-primary/20"
                       : "bg-card border-border"
                   }`}
                 >
@@ -166,7 +288,7 @@ export const MissionsPanel = () => {
                       {isCompleted ? (
                         <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
                       ) : canComplete ? (
-                        <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-primary animate-bounce" />
+                        <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                       ) : (
                         <Circle className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                       )}
