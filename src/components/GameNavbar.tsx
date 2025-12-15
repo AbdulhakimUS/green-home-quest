@@ -88,63 +88,63 @@ export const GameNavbar = ({
         </Button>
       )}
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border z-50 lg:left-0 lg:top-0 lg:bottom-0 lg:right-auto lg:w-64 lg:border-r lg:border-t-0">
-        <div className="flex justify-around items-center h-16 px-2 lg:flex-col lg:h-full lg:justify-start lg:gap-4 lg:py-8">
+      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border z-50 lg:left-0 lg:top-0 lg:bottom-0 lg:right-auto lg:w-64 lg:border-r lg:border-t-0 safe-area-bottom">
+        <div className="flex justify-around items-center h-14 px-1 lg:flex-col lg:h-full lg:justify-start lg:gap-4 lg:py-8">
           <Button
             variant={activeTab === "home" ? "default" : "ghost"}
             onClick={() => onTabChange("home")}
-            className="flex-col h-auto py-2 lg:w-full lg:flex-row lg:justify-start"
+            className="flex-col h-auto py-1.5 px-2 min-w-0 lg:w-full lg:flex-row lg:justify-start lg:py-2 lg:px-4"
           >
-            <Home className="w-6 h-6 lg:mr-2" />
-            <span className="text-xs mt-1 lg:text-sm lg:mt-0">Дом</span>
+            <Home className="w-5 h-5 lg:w-6 lg:h-6 lg:mr-2" />
+            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">Дом</span>
           </Button>
           <Button
             variant={activeTab === "shop" ? "default" : "ghost"}
             onClick={() => onTabChange("shop")}
-            className="flex-col h-auto py-2 lg:w-full lg:flex-row lg:justify-start"
+            className="flex-col h-auto py-1.5 px-2 min-w-0 lg:w-full lg:flex-row lg:justify-start lg:py-2 lg:px-4"
           >
-            <ShoppingCart className="w-6 h-6 lg:mr-2" />
-            <span className="text-xs mt-1 lg:text-sm lg:mt-0">Магазин</span>
+            <ShoppingCart className="w-5 h-5 lg:w-6 lg:h-6 lg:mr-2" />
+            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">Магазин</span>
           </Button>
           <Button
             variant={activeTab === "cards" ? "default" : "ghost"}
             onClick={() => onTabChange("cards")}
-            className="flex-col h-auto py-2 lg:w-full lg:flex-row lg:justify-start"
+            className="flex-col h-auto py-1.5 px-2 min-w-0 lg:w-full lg:flex-row lg:justify-start lg:py-2 lg:px-4"
           >
-            <CreditCard className="w-6 h-6 lg:mr-2" />
-            <span className="text-xs mt-1 lg:text-sm lg:mt-0">Карты</span>
+            <CreditCard className="w-5 h-5 lg:w-6 lg:h-6 lg:mr-2" />
+            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">Карты</span>
           </Button>
           <Button
             variant={activeTab === "market" ? "default" : "ghost"}
             onClick={() => onTabChange("market")}
-            className="flex-col h-auto py-2 lg:w-full lg:flex-row lg:justify-start">
-            <Store className="h-4 w-4" />
-            <span className="text-xs mt-1 lg:text-sm lg:mt-0">Рынок</span>
+            className="flex-col h-auto py-1.5 px-2 min-w-0 lg:w-full lg:flex-row lg:justify-start lg:py-2 lg:px-4"
+          >
+            <Store className="w-5 h-5 lg:w-6 lg:h-6 lg:mr-2" />
+            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">Рынок</span>
           </Button>
-
           <Button
             variant={activeTab === "missions" ? "default" : "ghost"}
             onClick={() => onTabChange("missions")}
-            className="flex-col h-auto py-2 lg:w-full lg:flex-row lg:justify-start relative"
+            className="flex-col h-auto py-1.5 px-2 min-w-0 lg:w-full lg:flex-row lg:justify-start lg:py-2 lg:px-4 relative"
           >
-            <Target className="w-6 h-6 lg:mr-2" />
-            <span className="text-xs mt-1 lg:text-sm lg:mt-0">Миссии</span>
+            <Target className="w-5 h-5 lg:w-6 lg:h-6 lg:mr-2" />
+            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">Миссии</span>
             {hasUnclaimedMission && (
               <Badge
                 variant="destructive"
-                className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0"
+                className="absolute -top-0.5 -right-0.5 w-4 h-4 flex items-center justify-center p-0"
               >
-                <Gift className="w-3 h-3" />
+                <Gift className="w-2.5 h-2.5" />
               </Badge>
             )}
           </Button>
           <Button
             variant="ghost"
             onClick={() => setShowHistory(true)}
-            className="flex-col h-auto py-2 lg:w-full lg:flex-row lg:justify-start"
+            className="flex-col h-auto py-1.5 px-2 min-w-0 lg:w-full lg:flex-row lg:justify-start lg:py-2 lg:px-4"
           >
-            <History className="w-6 h-6 lg:mr-2" />
-            <span className="text-xs mt-1 lg:text-sm lg:mt-0">История</span>
+            <History className="w-5 h-5 lg:w-6 lg:h-6 lg:mr-2" />
+            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">История</span>
           </Button>
         </div>
       </nav>
