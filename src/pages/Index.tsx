@@ -10,6 +10,7 @@ import { Footer } from "@/components/Footer";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import { MissionsPanel } from "@/components/MissionsPanel";
 import { MarketTab } from "@/components/MarketTab";
+import { GameRulesDialog } from "@/components/GameRulesDialog";
 
 const GameContent = () => {
   const { player, isAdmin, setPlayer, setIsAdmin, setGameSession, removePlayer } = useGame();
@@ -78,6 +79,9 @@ const GameContent = () => {
           {activeTab === "missions" && <MissionsPanel />}
         </div>
       </main>
+      
+      {/* Кнопка помощи в игре */}
+      <GameRulesDialog variant="game" />
       
       <Footer />
 

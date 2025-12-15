@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Home, Leaf } from "lucide-react";
+import { GameRulesDialog } from "@/components/GameRulesDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -318,6 +319,11 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/20 via-background to-accent/20 flex items-center justify-center p-3 sm:p-4">
+      {/* Кнопка помощи в углу */}
+      <div className="fixed top-4 right-4 z-50">
+        <GameRulesDialog variant="login" />
+      </div>
+
       <div className="w-full max-w-sm sm:max-w-md space-y-4 sm:space-y-6 animate-fade-in">
         <div className="text-center space-y-1.5 sm:space-y-2">
           <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
