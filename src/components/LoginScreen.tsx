@@ -10,14 +10,17 @@ import {
 } from "@/components/ui/card";
 import { Home, Leaf } from "lucide-react";
 import { GameRulesDialog } from "@/components/GameRulesDialog";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface LoginScreenProps {
   onLogin: (player: any, session: any, isAdmin: boolean) => void;
 }
 
 export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
+  const { t } = useLanguage();
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminAuthenticated, setAdminAuthenticated] = useState(false);
   const [adminChoice, setAdminChoice] = useState<"create" | "join" | null>(
@@ -92,8 +95,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const handlePlayerLogin = async () => {
     if (!gameCode || !nickname) {
       toast({
-        title: "Ошибка",
-        description: "Заполните все поля",
+        title: t("error.title"),
+        description: t("error.fillFields"),
         variant: "destructive",
       });
       return;
@@ -101,8 +104,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
     if (!/^\d{6}$/.test(gameCode)) {
       toast({
-        title: "Ошибка",
-        description: "Код должен состоять из 6 цифр",
+        title: t("error.title"),
+        description: t("error.codeFormat"),
         variant: "destructive",
       });
       return;
@@ -118,8 +121,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
     if (sessionError || !session) {
       toast({
-        title: "Ошибка",
-        description: "Игра с таким кодом не найдена",
+        title: t("error.title"),
+        description: t("error.gameNotFound"),
         variant: "destructive",
       });
       setLoading(false);
@@ -129,8 +132,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     // Проверяем статус игры - если игра уже началась, новые игроки не могут присоединиться
     if (session.status === "active" || session.status === "paused") {
       toast({
-        title: "Ошибка",
-        description: "Игра уже началась. Присоединиться нельзя.",
+        title: t("error.title"),
+        description: t("error.gameStarted"),
         variant: "destructive",
       });
       setLoading(false);
@@ -146,8 +149,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
     if (existingPlayer) {
       toast({
-        title: "Ошибка",
-        description: "Этот никнейм уже занят",
+        title: t("error.title"),
+        description: t("error.nicknameTaken"),
         variant: "destructive",
       });
       setLoading(false);
@@ -176,8 +179,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     if (playerError || !newPlayer) {
       console.error("❌ Error creating player:", playerError);
       toast({
-        title: "Ошибка",
-        description: "Не удалось создать игрока",
+        title: t("error.title"),
+        description: t("error.createPlayer"),
         variant: "destructive",
       });
       setLoading(false);
@@ -199,8 +202,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
       );
 
       toast({
-        title: "Успешно!",
-        description: `Добро пожаловать, ${nickname}!`,
+        title: t("success.title"),
+        description: `${t("success.welcome")}, ${nickname}!`,
       });
       onLogin(newPlayer, session, false);
     }
@@ -209,8 +212,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const handleAdminLogin = async () => {
     if (adminLogin !== "eco-home" || adminPassword !== "Shkola74") {
       toast({
-        title: "Ошибка",
-        description: "Неверный логин или пароль",
+        title: t("error.title"),
+        description: t("error.wrongCredentials"),
         variant: "destructive",
       });
       return;
@@ -218,8 +221,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
     setAdminAuthenticated(true);
     toast({
-      title: "Успешно!",
-      description: "Добро пожаловать, администратор",
+      title: t("success.title"),
+      description: t("success.welcomeAdmin"),
     });
   };
 
@@ -227,8 +230,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     const balance = parseInt(initialBalance);
     if (isNaN(balance) || balance <= 0) {
       toast({
-        title: "Ошибка",
-        description: "Введите корректный начальный баланс",
+        title: t("error.title"),
+        description: t("error.invalidBalance"),
         variant: "destructive",
       });
       return;
@@ -255,8 +258,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
     if (sessionError || !session) {
       console.error("❌ Error creating session:", sessionError);
       toast({
-        title: "Ошибка",
-        description: "Не удалось создать игру",
+        title: t("error.title"),
+        description: t("error.createGame"),
         variant: "destructive",
       });
       setLoading(false);
@@ -270,8 +273,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
     setLoading(false);
     toast({
-      title: "Игра создана!",
-      description: `Код игры: ${newGameCode}`,
+      title: t("success.gameCreated"),
+      description: `${t("success.gameCode")}: ${newGameCode}`,
     });
     onLogin(null, session, true);
   };
@@ -279,8 +282,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   const handleJoinRoom = async () => {
     if (!joinCode || !/^\d{6}$/.test(joinCode)) {
       toast({
-        title: "Ошибка",
-        description: "Введите корректный 6-значный код",
+        title: t("error.title"),
+        description: t("error.invalidCode"),
         variant: "destructive",
       });
       return;
@@ -296,8 +299,8 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
     if (sessionError || !session) {
       toast({
-        title: "Ошибка",
-        description: "Игра с таким кодом не найдена",
+        title: t("error.title"),
+        description: t("error.gameNotFound"),
         variant: "destructive",
       });
       setLoading(false);
@@ -311,16 +314,17 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
 
     setLoading(false);
     toast({
-      title: "Успешно!",
-      description: `Присоединились к игре ${joinCode}`,
+      title: t("success.title"),
+      description: `${t("success.joinedGame")} ${joinCode}`,
     });
     onLogin(null, session, true);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/20 via-background to-accent/20 flex items-center justify-center p-3 sm:p-4">
-      {/* Кнопка помощи в углу */}
-      <div className="fixed top-4 right-4 z-50">
+      {/* Кнопки помощи и языка в углу */}
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+        <LanguageSelector />
         <GameRulesDialog variant="login" />
       </div>
 
@@ -331,10 +335,10 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
             <Leaf className="w-8 h-8 sm:w-10 sm:h-10 text-success" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-primary">
-            Эко Дом
+            {t("app.title")}
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Создайте самый экологичный дом!
+            {t("app.subtitle")}
           </p>
         </div>
 
@@ -342,22 +346,22 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           <Card className="border-2 shadow-lg">
             <CardHeader className="p-4 sm:p-6">
               <CardTitle className="text-base sm:text-lg">
-                Присоединиться к игре
+                {t("login.join")}
               </CardTitle>
               <CardDescription className="text-xs sm:text-sm">
-                Введите 6-значный код игры и никнейм
+                {t("login.joinDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
               <Input
-                placeholder="Код игры (6 цифр)"
+                placeholder={t("login.code")}
                 value={gameCode}
                 onChange={(e) => setGameCode(e.target.value)}
                 className="text-center text-base sm:text-lg font-semibold"
                 maxLength={6}
               />
               <Input
-                placeholder="Ваш никнейм"
+                placeholder={t("login.nickname")}
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
                 className="text-sm sm:text-base"
@@ -368,14 +372,14 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                 size="lg"
                 disabled={loading}
               >
-                {loading ? "Загрузка..." : "Начать игру"}
+                {loading ? t("login.loading") : t("login.start")}
               </Button>
               <Button
                 variant="ghost"
                 onClick={() => setIsAdmin(true)}
                 className="w-full text-xs sm:text-sm"
               >
-                Создать игру (админ)
+                {t("login.createAdmin")}
               </Button>
             </CardContent>
           </Card>
@@ -383,22 +387,22 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           <Card className="border-2 shadow-lg border-primary">
             <CardHeader className="p-4 sm:p-6">
               <CardTitle className="text-base sm:text-lg">
-                Вход администратора
+                {t("login.adminTitle")}
               </CardTitle>
               <CardDescription className="text-xs sm:text-sm">
-                Войдите для управления игрой
+                {t("login.adminDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
               <Input
-                placeholder="Логин"
+                placeholder={t("login.login")}
                 value={adminLogin}
                 onChange={(e) => setAdminLogin(e.target.value)}
                 className="text-sm sm:text-base"
               />
               <Input
                 type="password"
-                placeholder="Пароль"
+                placeholder={t("login.password")}
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
                 className="text-sm sm:text-base"
@@ -409,14 +413,14 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                 size="lg"
                 disabled={loading}
               >
-                Войти
+                {t("login.enter")}
               </Button>
               <Button
                 variant="ghost"
                 onClick={() => setIsAdmin(false)}
                 className="w-full text-xs sm:text-sm"
               >
-                Назад
+                {t("login.back")}
               </Button>
             </CardContent>
           </Card>
@@ -424,10 +428,10 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
           <Card className="border-2 shadow-lg border-primary">
             <CardHeader className="p-4 sm:p-6">
               <CardTitle className="text-base sm:text-lg">
-                Управление игрой
+                {t("login.gameControl")}
               </CardTitle>
               <CardDescription className="text-xs sm:text-sm">
-                Выберите действие
+                {t("login.selectAction")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
@@ -438,7 +442,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                     className="w-full text-sm sm:text-base"
                     size="lg"
                   >
-                    Создать новую комнату
+                    {t("login.createRoom")}
                   </Button>
                   <Button
                     onClick={() => setAdminChoice("join")}
@@ -446,17 +450,17 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                     size="lg"
                     variant="outline"
                   >
-                    Присоединиться к существующей
+                    {t("login.joinExisting")}
                   </Button>
                 </>
               ) : adminChoice === "create" ? (
                 <>
                   <p className="text-xs sm:text-sm text-muted-foreground text-center">
-                    Создать новую игровую комнату
+                    {t("login.createRoomDesc")}
                   </p>
                   <div>
                     <label className="text-xs sm:text-sm text-muted-foreground">
-                      Начальный баланс игроков ($)
+                      {t("login.initialBalance")}
                     </label>
                     <Input
                       type="number"
@@ -473,20 +477,20 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                     size="lg"
                     disabled={loading}
                   >
-                    {loading ? "Создание..." : "Создать комнату"}
+                    {loading ? t("login.creating") : t("login.createRoom")}
                   </Button>
                   <Button
                     variant="ghost"
                     onClick={() => setAdminChoice(null)}
                     className="w-full text-xs sm:text-sm"
                   >
-                    Назад
+                    {t("login.back")}
                   </Button>
                 </>
               ) : (
                 <>
                   <Input
-                    placeholder="Код комнаты (6 цифр)"
+                    placeholder={t("login.roomCode")}
                     value={joinCode}
                     onChange={(e) => setJoinCode(e.target.value)}
                     className="text-center text-base sm:text-lg font-semibold"
@@ -498,14 +502,14 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
                     size="lg"
                     disabled={loading}
                   >
-                    {loading ? "Подключение..." : "Присоединиться"}
+                    {loading ? t("login.joining") : t("login.joinRoom")}
                   </Button>
                   <Button
                     variant="ghost"
                     onClick={() => setAdminChoice(null)}
                     className="w-full text-xs sm:text-sm"
                   >
-                    Назад
+                    {t("login.back")}
                   </Button>
                 </>
               )}
