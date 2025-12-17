@@ -19,6 +19,7 @@ import { Progress } from "@/components/ui/progress";
 import { useState, useEffect } from "react";
 import { PurchaseHistory } from "./PurchaseHistory";
 import { formatLevel, formatMoney } from "@/lib/formatters";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface GameNavbarProps {
   activeTab: string;
@@ -32,6 +33,7 @@ export const GameNavbar = ({
   onExitClick,
 }: GameNavbarProps) => {
   const { player, timeRemaining, gameSession } = useGame();
+  const { t } = useLanguage();
   const [showHistory, setShowHistory] = useState(false);
   const [hasUnclaimedMission, setHasUnclaimedMission] = useState(false);
 
@@ -82,7 +84,7 @@ export const GameNavbar = ({
           variant="destructive"
           onClick={onExitClick}
           className="fixed top-24 left-4 z-50 w-12 h-12 rounded-full p-0 flex items-center justify-center lg:hidden shadow-lg"
-          title="Выйти из комнаты"
+          title={t("nav.exitRoom")}
         >
           <LogOut className="w-5 h-5" />
         </Button>
@@ -96,7 +98,7 @@ export const GameNavbar = ({
             className="flex-col h-auto py-1.5 px-2 min-w-0 lg:w-full lg:flex-row lg:justify-start lg:py-2 lg:px-4"
           >
             <Home className="w-5 h-5 lg:w-6 lg:h-6 lg:mr-2" />
-            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">Дом</span>
+            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">{t("nav.home")}</span>
           </Button>
           <Button
             variant={activeTab === "shop" ? "default" : "ghost"}
@@ -104,7 +106,7 @@ export const GameNavbar = ({
             className="flex-col h-auto py-1.5 px-2 min-w-0 lg:w-full lg:flex-row lg:justify-start lg:py-2 lg:px-4"
           >
             <ShoppingCart className="w-5 h-5 lg:w-6 lg:h-6 lg:mr-2" />
-            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">Магазин</span>
+            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">{t("nav.shop")}</span>
           </Button>
           <Button
             variant={activeTab === "cards" ? "default" : "ghost"}
@@ -112,7 +114,7 @@ export const GameNavbar = ({
             className="flex-col h-auto py-1.5 px-2 min-w-0 lg:w-full lg:flex-row lg:justify-start lg:py-2 lg:px-4"
           >
             <CreditCard className="w-5 h-5 lg:w-6 lg:h-6 lg:mr-2" />
-            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">Карты</span>
+            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">{t("nav.cards")}</span>
           </Button>
           <Button
             variant={activeTab === "market" ? "default" : "ghost"}
@@ -120,7 +122,7 @@ export const GameNavbar = ({
             className="flex-col h-auto py-1.5 px-2 min-w-0 lg:w-full lg:flex-row lg:justify-start lg:py-2 lg:px-4"
           >
             <Store className="w-5 h-5 lg:w-6 lg:h-6 lg:mr-2" />
-            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">Рынок</span>
+            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">{t("nav.market")}</span>
           </Button>
           <Button
             variant={activeTab === "missions" ? "default" : "ghost"}
@@ -128,7 +130,7 @@ export const GameNavbar = ({
             className="flex-col h-auto py-1.5 px-2 min-w-0 lg:w-full lg:flex-row lg:justify-start lg:py-2 lg:px-4 relative"
           >
             <Target className="w-5 h-5 lg:w-6 lg:h-6 lg:mr-2" />
-            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">Миссии</span>
+            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">{t("nav.missions")}</span>
             {hasUnclaimedMission && (
               <Badge
                 variant="destructive"
@@ -144,7 +146,7 @@ export const GameNavbar = ({
             className="flex-col h-auto py-1.5 px-2 min-w-0 lg:w-full lg:flex-row lg:justify-start lg:py-2 lg:px-4"
           >
             <History className="w-5 h-5 lg:w-6 lg:h-6 lg:mr-2" />
-            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">История</span>
+            <span className="text-[10px] mt-0.5 lg:text-sm lg:mt-0">{t("nav.history")}</span>
           </Button>
         </div>
       </nav>
@@ -156,8 +158,8 @@ export const GameNavbar = ({
               <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-success flex-shrink-0" />
               <span className="text-sm sm:text-base font-semibold truncate">
                 {player && player.house_level >= 25
-                  ? "Макс"
-                  : `Ур. ${displayLevel}`}
+                  ? t("nav.maxLevel")
+                  : `${t("nav.level")} ${displayLevel}`}
               </span>
             </div>
             {timeRemaining !== null && gameSession?.status === "active" && (
