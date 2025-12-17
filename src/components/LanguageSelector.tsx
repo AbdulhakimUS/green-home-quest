@@ -1,4 +1,4 @@
-import { Globe } from "lucide-react";
+import { Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,10 +8,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
 
-const languages: { code: Language; label: string; flag: string }[] = [
-  { code: "ru", label: "Русский", flag: "🇷🇺" },
-  { code: "en", label: "English", flag: "🇬🇧" },
-  { code: "uz", label: "O'zbek", flag: "🇺🇿" },
+const languages: { code: Language; label: string; short: string }[] = [
+  { code: "ru", label: "Русский", short: "RU" },
+  { code: "en", label: "English", short: "EN" },
+  { code: "uz", label: "O'zbek", short: "UZ" },
 ];
 
 export const LanguageSelector = () => {
@@ -28,7 +28,7 @@ export const LanguageSelector = () => {
           className="rounded-full w-10 h-10 border-2 border-primary/50 hover:border-primary hover:bg-primary/10 transition-all"
           title="Language"
         >
-          <span className="text-lg">{currentLang?.flag || "🌐"}</span>
+          <Languages className="w-5 h-5 text-primary" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-card border border-border z-50">
@@ -40,7 +40,7 @@ export const LanguageSelector = () => {
               language === lang.code ? "bg-primary/10 text-primary" : ""
             }`}
           >
-            <span className="text-lg">{lang.flag}</span>
+            <span className="font-semibold text-xs w-6">{lang.short}</span>
             <span>{lang.label}</span>
           </DropdownMenuItem>
         ))}
