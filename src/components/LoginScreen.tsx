@@ -210,7 +210,7 @@ export const LoginScreen = ({ onLogin }: LoginScreenProps) => {
   };
 
   const handleAdminLogin = async () => {
-    if (adminLogin !== "eco-home" || adminPassword !== "Shkola74") {
+    if (adminLogin !== "amonovvv_a" || adminPassword !== "Abdulhakim13012010") {
       toast({
         title: t("error.title"),
         description: t("error.wrongCredentials"),
