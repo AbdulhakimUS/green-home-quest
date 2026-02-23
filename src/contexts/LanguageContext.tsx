@@ -10,7 +10,6 @@ interface LanguageContextType {
 
 const translations: Record<Language, Record<string, string>> = {
   ru: {
-    // Login Screen
     "app.title": "Эко Дом",
     "app.subtitle": "Создайте самый экологичный дом!",
     "login.join": "Присоединиться к игре",
@@ -36,8 +35,14 @@ const translations: Record<Language, Record<string, string>> = {
     "login.roomCode": "Код комнаты (6 цифр)",
     "login.joining": "Загрузка...",
     "login.joinRoom": "Присоединиться",
-    
-    // Errors
+    "login.acceptRules": "Необходимо принять правила игры",
+    "login.acceptRulesText": "Я прочитал(а) и принимаю правила игры.",
+    "login.readRules": "Читать правила",
+    "login.waitingApproval": "Ожидание подтверждения",
+    "login.waitingDesc": "Администратор должен подтвердить ваш вход в игру. Пожалуйста, подождите...",
+    "login.denied": "Ваша заявка отклонена администратором",
+    "login.blocked": "Вы заблокированы в этой игре",
+    "login.reconnected": "Сессия восстановлена! Ваш прогресс сохранён.",
     "error.title": "Ошибка",
     "error.fillFields": "Заполните все поля",
     "error.codeFormat": "Код должен состоять из 6 цифр",
@@ -49,16 +54,12 @@ const translations: Record<Language, Record<string, string>> = {
     "error.createGame": "Не удалось создать игру",
     "error.invalidBalance": "Введите корректный начальный баланс",
     "error.invalidCode": "Введите корректный 6-значный код",
-    
-    // Success
     "success.title": "Успешно!",
     "success.welcome": "Добро пожаловать",
     "success.welcomeAdmin": "Добро пожаловать, администратор",
     "success.gameCreated": "Игра создана!",
     "success.gameCode": "Код игры",
     "success.joinedGame": "Присоединились к игре",
-    
-    // Navigation
     "nav.home": "Дом",
     "nav.shop": "Магазин",
     "nav.cards": "Карты",
@@ -68,17 +69,14 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.level": "Ур.",
     "nav.maxLevel": "Макс",
     "nav.exitRoom": "Выйти из комнаты",
-    
-    // Exit Dialog
     "exit.title": "Выйти из комнаты?",
     "exit.message": "Вы точно хотите выйти из игры? Ваш прогресс будет потерян.",
     "exit.cancel": "Отмена",
     "exit.confirm": "Выйти",
-    
-    // Rules Dialog
     "rules.title": "Правила игры «Эко Дом»",
+    "rules.fullTitle": "ПРАВИЛА / RULES / QOIDALAR",
     "rules.objective": "Цель игры",
-    "rules.objectiveDesc": "Создайте максимально экологичный дом, достигнув 25 уровня.",
+    "rules.objectiveDesc": "Создайте максимально экологичный дом, достигнув 50 уровня.",
     "rules.winner": "Победитель:",
     "rules.winnerDesc": "Выигрывает тот, кто достиг максимального уровня дома и сохранил больше всего денег!",
     "rules.howToPlay": "Как играть",
@@ -107,12 +105,160 @@ const translations: Record<Language, Record<string, string>> = {
     "rules.tip3": "💡 Выполняйте миссии для дополнительного дохода",
     "rules.tip4": "💡 Используйте рынок для выгодных сделок",
     "rules.goodLuck": "Удачи в создании экологичного дома! 🌿🏠",
-    
-    // Footer
+    "rules.fullText": `📋 ПРАВИЛА ИГРЫ «ЭКО ДОМ»
+
+🎯 ЦЕЛЬ ИГРЫ
+Построить самый экологичный дом, достигнув максимального уровня (50).
+Победитель — игрок с наивысшим уровнем дома. При равном уровне побеждает тот, у кого больше денег.
+
+🚪 ВХОД В ИГРУ
+• Игрок может присоединиться в любое время (даже во время матча)
+• Вход требует подтверждения администратора (approve/deny)
+• При повторном входе в течение 3 часов прогресс восстанавливается автоматически
+• Перед входом необходимо принять правила игры
+
+📦 ИНВЕНТАРЬ
+• Максимум 5 предметов в каждой категории (Энергия, Вода, Зелень)
+• При заполненном инвентаре (5/5) покупка новых предметов блокируется
+• Чтобы купить новый предмет — сначала продайте старый на рынке
+• Награды за миссии при полном инвентаре уходят во временное хранилище
+
+🛒 МАГАЗИН
+• 30 предметов в каждой категории (6 тиров)
+• Цена растёт с каждым уровнем предмета (×1.5)
+• Каждая покупка повышает уровень дома
+• Более дорогие предметы дают больше уровня
+
+🏪 РЫНОК
+• Продавайте предметы другим игрокам
+• Максимальная цена — 75% от базовой стоимости
+• Комиссия рынка — 7%
+• Максимум 5 лотов на категорию от одного игрока
+• Купленный предмет отображается как «Продано» 5 секунд
+
+📊 ЭТАПЫ
+• Этап 1 (уровни 1-25): базовый дом, все предметы доступны
+• Этап 2 (уровни 26-50): новый дизайн, предметы Тир 1-3 заблокированы
+• На Этапе 2 старые предметы можно продать боту за 50% стоимости
+
+🎯 МИССИИ
+• Выполняйте задания для получения бонусных денег
+• Миссии по уровню дома, количеству предметов, кислороду и деньгам
+
+🎁 БОНУСЫ
+• 4 скрытых клада (+$5,000 каждый)
+• Бонус за все клады — +$20,000
+• Награды за 50, 75, 100 предметов
+
+⚠️ ЗАПРЕЩЕНО
+• Использование багов и эксплойтов (баг-абьюз)
+• Дублирование предметов (дюп)
+• Обход лимитов инвентаря
+• Любые попытки обмана системы
+• Нарушители будут заблокированы администратором
+
+👑 ПРАВА АДМИНИСТРАТОРА
+• Подтверждение/отклонение входа игроков
+• Выдача и изъятие предметов
+• Изменение баланса и уровня
+• Откат прогресса
+• Удаление дублированных предметов
+• Кик и блокировка игроков
+
+🔄 ВОССТАНОВЛЕНИЕ
+• При вылете данные сохраняются автоматически каждые 12 секунд
+• При повторном входе (тот же никнейм, в течение 3 часов) прогресс восстанавливается
+• Если прошло более 3 часов — новый игрок с нуля
+
+---
+
+📋 GAME RULES "ECO HOME"
+
+🎯 OBJECTIVE
+Build the most eco-friendly home by reaching the maximum level (50).
+The winner is the player with the highest house level. In case of a tie, the player with more money wins.
+
+🚪 JOINING
+• Players can join at any time (even during an active match)
+• Entry requires admin approval (approve/deny)
+• Reconnecting within 3 hours restores all progress automatically
+• Players must accept rules before joining
+
+📦 INVENTORY
+• Maximum 5 items per category (Energy, Water, Greenery)
+• When inventory is full (5/5), purchases are blocked
+• Sell an item on the market to free up space
+• Mission rewards go to pending storage when inventory is full
+
+🛒 SHOP
+• 30 items per category (6 tiers)
+• Price increases with each item level (×1.5)
+• Each purchase increases house level
+• More expensive items give more level
+
+🏪 MARKET
+• Sell items to other players
+• Maximum price — 75% of base cost
+• Market fee — 7%
+• Maximum 5 listings per category
+• Purchased items show as "Sold" for 5 seconds
+
+📊 STAGES
+• Stage 1 (levels 1-25): basic house, all items available
+• Stage 2 (levels 26-50): new design, Tier 1-3 items locked
+• Stage 2 players can sell old items to bot for 50% value
+
+⚠️ PROHIBITED
+• Bug exploitation (bug abuse)
+• Item duplication (duping)
+• Bypassing inventory limits
+• Any attempts to cheat the system
+• Violators will be blocked by admin
+
+---
+
+📋 O'YIN QOIDALARI "EKO UY"
+
+🎯 MAQSAD
+Eng ekologik uyni qurib, maksimal darajaga (50) yetish.
+G'olib — eng yuqori uy darajasiga ega o'yinchi. Teng darajada ko'proq pulga ega bo'lgan g'olib.
+
+🚪 KIRISH
+• O'yinchi istalgan vaqtda qo'shilishi mumkin (match paytida ham)
+• Kirish uchun admin tasdiqlashi kerak (approve/deny)
+• 3 soat ichida qayta kirganida barcha progress tiklanadi
+• Kirishdan oldin qoidalarni qabul qilish kerak
+
+📦 INVENTAR
+• Har bir kategoriyada maksimum 5 narsa (Energiya, Suv, Ko'katlar)
+• Inventar to'lganida (5/5) xarid bloklanadi
+• Yangi narsa olish uchun avval eskisini bozorda soting
+• Inventar to'lganida vazifa mukofotlari kutish xotirasiga o'tadi
+
+🛒 DO'KON
+• Har kategoriyada 30 narsa (6 daraja)
+• Narx har bir daraja bilan oshadi (×1.5)
+• Har xarid uy darajasini oshiradi
+
+🏪 BOZOR
+• Narsalarni boshqa o'yinchilarga soting
+• Maksimal narx — asosiy qiymatning 75%
+• Bozor komissiyasi — 7%
+• Kategoriyada maksimum 5 ta e'lon
+
+📊 BOSQICHLAR
+• 1-bosqich (1-25 daraja): oddiy uy
+• 2-bosqich (26-50 daraja): yangi dizayn, 1-3 daraja narsalari bloklanadi
+• 2-bosqichda eski narsalarni botga 50% narxda sotish mumkin
+
+⚠️ TAQIQLANADI
+• Xatolardan foydalanish
+• Narsalarni nusxalash (dup)
+• Inventar limitlarini chetlab o'tish
+• Qoidabuzarlar admin tomonidan bloklanadi`,
     "footer.developer": "Разработчик",
   },
   en: {
-    // Login Screen
     "app.title": "Eco Home",
     "app.subtitle": "Create the most eco-friendly home!",
     "login.join": "Join Game",
@@ -138,8 +284,14 @@ const translations: Record<Language, Record<string, string>> = {
     "login.roomCode": "Room code (6 digits)",
     "login.joining": "Loading...",
     "login.joinRoom": "Join",
-    
-    // Errors
+    "login.acceptRules": "You must accept the game rules",
+    "login.acceptRulesText": "I have read and accept the game rules.",
+    "login.readRules": "Read rules",
+    "login.waitingApproval": "Waiting for approval",
+    "login.waitingDesc": "The administrator must confirm your entry. Please wait...",
+    "login.denied": "Your request was denied by the administrator",
+    "login.blocked": "You are blocked from this game",
+    "login.reconnected": "Session restored! Your progress is saved.",
     "error.title": "Error",
     "error.fillFields": "Fill in all fields",
     "error.codeFormat": "Code must be 6 digits",
@@ -151,16 +303,12 @@ const translations: Record<Language, Record<string, string>> = {
     "error.createGame": "Failed to create game",
     "error.invalidBalance": "Enter valid starting balance",
     "error.invalidCode": "Enter valid 6-digit code",
-    
-    // Success
     "success.title": "Success!",
     "success.welcome": "Welcome",
     "success.welcomeAdmin": "Welcome, administrator",
     "success.gameCreated": "Game created!",
     "success.gameCode": "Game code",
     "success.joinedGame": "Joined game",
-    
-    // Navigation
     "nav.home": "Home",
     "nav.shop": "Shop",
     "nav.cards": "Cards",
@@ -170,17 +318,14 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.level": "Lv.",
     "nav.maxLevel": "Max",
     "nav.exitRoom": "Exit room",
-    
-    // Exit Dialog
     "exit.title": "Exit room?",
     "exit.message": "Are you sure you want to exit? Your progress will be lost.",
     "exit.cancel": "Cancel",
     "exit.confirm": "Exit",
-    
-    // Rules Dialog
     "rules.title": "Game Rules «Eco Home»",
+    "rules.fullTitle": "RULES / ПРАВИЛА / QOIDALAR",
     "rules.objective": "Objective",
-    "rules.objectiveDesc": "Create the most eco-friendly home by reaching level 25.",
+    "rules.objectiveDesc": "Create the most eco-friendly home by reaching level 50.",
     "rules.winner": "Winner:",
     "rules.winnerDesc": "The winner is the one who reached the maximum house level and saved the most money!",
     "rules.howToPlay": "How to Play",
@@ -209,12 +354,10 @@ const translations: Record<Language, Record<string, string>> = {
     "rules.tip3": "💡 Complete missions for extra income",
     "rules.tip4": "💡 Use the market for profitable deals",
     "rules.goodLuck": "Good luck building your eco home! 🌿🏠",
-    
-    // Footer
+    "rules.fullText": "See rules above in all 3 languages.",
     "footer.developer": "Developer",
   },
   uz: {
-    // Login Screen
     "app.title": "Eko Uy",
     "app.subtitle": "Eng ekologik uyni yarating!",
     "login.join": "O'yinga qo'shilish",
@@ -240,8 +383,14 @@ const translations: Record<Language, Record<string, string>> = {
     "login.roomCode": "Xona kodi (6 raqam)",
     "login.joining": "Yuklanmoqda...",
     "login.joinRoom": "Qo'shilish",
-    
-    // Errors
+    "login.acceptRules": "O'yin qoidalarini qabul qilish kerak",
+    "login.acceptRulesText": "Men o'yin qoidalarini o'qidim va qabul qilaman.",
+    "login.readRules": "Qoidalarni o'qish",
+    "login.waitingApproval": "Tasdiqlash kutilmoqda",
+    "login.waitingDesc": "Administrator kirishingizni tasdiqlashi kerak. Iltimos, kuting...",
+    "login.denied": "Arizangiz administrator tomonidan rad etildi",
+    "login.blocked": "Siz bu o'yinda bloklangansiz",
+    "login.reconnected": "Sessiya tiklandi! Progressingiz saqlandi.",
     "error.title": "Xato",
     "error.fillFields": "Barcha maydonlarni to'ldiring",
     "error.codeFormat": "Kod 6 raqamdan iborat bo'lishi kerak",
@@ -253,16 +402,12 @@ const translations: Record<Language, Record<string, string>> = {
     "error.createGame": "O'yinni yaratib bo'lmadi",
     "error.invalidBalance": "To'g'ri boshlang'ich balansni kiriting",
     "error.invalidCode": "To'g'ri 6 raqamli kodni kiriting",
-    
-    // Success
     "success.title": "Muvaffaqiyatli!",
     "success.welcome": "Xush kelibsiz",
     "success.welcomeAdmin": "Xush kelibsiz, administrator",
     "success.gameCreated": "O'yin yaratildi!",
     "success.gameCode": "O'yin kodi",
     "success.joinedGame": "O'yinga qo'shildingiz",
-    
-    // Navigation
     "nav.home": "Uy",
     "nav.shop": "Do'kon",
     "nav.cards": "Kartalar",
@@ -272,17 +417,14 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.level": "Dar.",
     "nav.maxLevel": "Maks",
     "nav.exitRoom": "Xonadan chiqish",
-    
-    // Exit Dialog
     "exit.title": "Xonadan chiqasizmi?",
-    "exit.message": "Haqiqatan ham o'yindan chiqmoqchimisiz? Jarayoningiz yo'qoladi.",
+    "exit.message": "Haqiqatan ham chiqmoqchimisiz? Jarayoningiz yo'qoladi.",
     "exit.cancel": "Bekor qilish",
     "exit.confirm": "Chiqish",
-    
-    // Rules Dialog
     "rules.title": "«Eko Uy» o'yin qoidalari",
+    "rules.fullTitle": "QOIDALAR / ПРАВИЛА / RULES",
     "rules.objective": "Maqsad",
-    "rules.objectiveDesc": "25-darajaga yetib, eng ekologik uyni yarating.",
+    "rules.objectiveDesc": "50-darajaga yetib, eng ekologik uyni yarating.",
     "rules.winner": "G'olib:",
     "rules.winnerDesc": "Eng yuqori uy darajasiga yetgan va eng ko'p pul saqlab qolgan g'olib bo'ladi!",
     "rules.howToPlay": "Qanday o'ynash kerak",
@@ -291,8 +433,8 @@ const translations: Record<Language, Record<string, string>> = {
     "rules.step3": "Uy darajasini oshiring — har bir xarid darajani oshiradi",
     "rules.step4": "Bonus pul olish uchun vazifalarni bajaring",
     "rules.shop": "Do'kon",
-    "rules.shopItems": "Har bir kategoriyada 30 ta narsa (Energiya, Suv, Ko'katlar)",
-    "rules.shopExpensive": "Qimmat narsalar ko'proq daraja beradi va ekologikroq",
+    "rules.shopItems": "Har bir kategoriyada 30 ta narsa",
+    "rules.shopExpensive": "Qimmat narsalar ko'proq daraja beradi",
     "rules.shopUpgrade": "Narsalarni qayta sotib olib yaxshilash mumkin",
     "rules.shopPrice": "Narx har bir daraja bilan oshadi",
     "rules.market": "O'yinchilar bozori",
@@ -306,13 +448,12 @@ const translations: Record<Language, Record<string, string>> = {
     "rules.allTreasures": "Barcha xazinalar bonusi — +$20,000",
     "rules.itemRewards": "Narsalar uchun mukofotlar — 50, 75, 100 narsa uchun bonuslar",
     "rules.tips": "Maslahatlar",
-    "rules.tip1": "💡 Ekologikroq narsalarni tanlang — ular samaraliroq",
-    "rules.tip2": "💡 Balansga e'tibor bering — hammasini birdan sarflamang",
+    "rules.tip1": "💡 Ekologikroq narsalarni tanlang",
+    "rules.tip2": "💡 Balansga e'tibor bering",
     "rules.tip3": "💡 Qo'shimcha daromad uchun vazifalarni bajaring",
     "rules.tip4": "💡 Foydali bitimlar uchun bozordan foydalaning",
     "rules.goodLuck": "Ekologik uy qurishda omad! 🌿🏠",
-    
-    // Footer
+    "rules.fullText": "Yuqoridagi qoidalarni 3 tilda ko'ring.",
     "footer.developer": "Dasturchi",
   },
 };
@@ -331,7 +472,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const t = (key: string): string => {
-    return translations[language][key] || key;
+    return translations[language][key] || translations["ru"][key] || key;
   };
 
   return (
