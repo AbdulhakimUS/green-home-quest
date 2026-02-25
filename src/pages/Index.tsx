@@ -12,6 +12,7 @@ import { MissionsPanel } from "@/components/MissionsPanel";
 import { MarketTab } from "@/components/MarketTab";
 import { GameRulesDialog } from "@/components/GameRulesDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { NotificationsProvider, NotificationsPanel } from "@/components/NotificationsPanel";
 
 const GameContent = () => {
   const { player, isAdmin, setPlayer, setIsAdmin, setGameSession, removePlayer } = useGame();
@@ -29,22 +30,53 @@ const GameContent = () => {
 
   const handlePlayerExit = async () => {
     if (player && !isAdmin) {
+      // Save state, mark as offline, but DON'T delete
       await removePlayer();
       setPlayer(null);
     }
   };
 
-  // Удаление игрока при закрытии окна/вкладки
+  // Save state before closing — do NOT delete player on page close!
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (player && !isAdmin) {
-        removePlayer();
+        // Use fetch with keepalive for reliable save on tab close
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/players?id=eq.${player.id}`;
+        const body = JSON.stringify({
+          last_activity: new Date().toISOString(),
+          money: player.money,
+          house_level: player.house_level,
+          inventory: player.inventory,
+          oxygen: player.oxygen,
+          completed_missions: player.completed_missions,
+          claimed_treasures: player.claimed_treasures,
+          claimed_item_rewards: player.claimed_item_rewards,
+          all_treasures_claimed: player.all_treasures_claimed,
+          pending_rewards: player.pending_rewards || [],
+          selected_card: player.selected_card,
+        });
+        
+        try {
+          fetch(url, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              "Prefer": "return=minimal",
+            },
+            body,
+            keepalive: true,
+          });
+        } catch (e) {
+          // Best effort
+        }
       }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [player, isAdmin, removePlayer]);
+  }, [player, isAdmin]);
 
   if (!player && !isAdmin) {
     return (
@@ -66,6 +98,11 @@ const GameContent = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* Notifications bell - top right, non-blocking */}
+      <div className="fixed top-3 right-3 z-50">
+        <NotificationsPanel />
+      </div>
+      
       <GameNavbar 
         activeTab={activeTab} 
         onTabChange={setActiveTab} 
@@ -116,9 +153,11 @@ const GameContent = () => {
 
 const Index = () => {
   return (
-    <GameProvider>
-      <GameContent />
-    </GameProvider>
+    <NotificationsProvider>
+      <GameProvider>
+        <GameContent />
+      </GameProvider>
+    </NotificationsProvider>
   );
 };
 

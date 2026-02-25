@@ -21,6 +21,7 @@ const ITEM_COUNT_REWARDS = [
 
 const INVENTORY_LIMIT_PER_CATEGORY = 5;
 const AUTOSAVE_INTERVAL = 12000; // 12 seconds
+const SAVE_VERSION_KEY = "eco_save_version";
 
 interface MarketListing {
   id: string;
@@ -115,6 +116,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [pendingPlayers, setPendingPlayers] = useState<Player[]>([]);
   const [gameLogs, setGameLogs] = useState<any[]>([]);
   const lastSaveRef = useRef<number>(0);
+  const localUpdateRef = useRef<number>(0); // Track local state changes to avoid realtime overwrite
+  const saveVersionRef = useRef<number>(0);
 
   // Helper: get inventory count per category
   const getInventoryCount = useCallback((category: CardType) => {
@@ -190,38 +193,50 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  // Autosave every 12 seconds
+  // Robust autosave every 12 seconds with version tracking
+  const savePlayerState = useCallback(async () => {
+    if (!player || !gameSession || isAdmin) return;
+    
+    const version = ++saveVersionRef.current;
+    
+    try {
+      const { error } = await supabase
+        .from("players")
+        .update({
+          money: player.money,
+          house_level: player.house_level,
+          inventory: player.inventory as any,
+          oxygen: player.oxygen,
+          completed_missions: player.completed_missions as any,
+          claimed_treasures: player.claimed_treasures as any,
+          claimed_item_rewards: player.claimed_item_rewards as any,
+          all_treasures_claimed: player.all_treasures_claimed,
+          pending_rewards: (player.pending_rewards || []) as any,
+          selected_card: player.selected_card,
+          last_activity: new Date().toISOString(),
+        })
+        .eq("id", player.id);
+      
+      if (!error) {
+        lastSaveRef.current = Date.now();
+        localStorage.setItem(SAVE_VERSION_KEY, version.toString());
+      }
+    } catch (e) {
+      // Silent fail - will retry on next interval
+    }
+  }, [player, gameSession, isAdmin]);
+
   useEffect(() => {
     if (!player || !gameSession || isAdmin) return;
 
-    const interval = setInterval(async () => {
+    const interval = setInterval(() => {
       const now = Date.now();
       if (now - lastSaveRef.current < 10000) return;
-      lastSaveRef.current = now;
-
-      try {
-        await supabase
-          .from("players")
-          .update({
-            money: player.money,
-            house_level: player.house_level,
-            inventory: player.inventory as any,
-            oxygen: player.oxygen,
-            completed_missions: player.completed_missions as any,
-            claimed_treasures: player.claimed_treasures as any,
-            claimed_item_rewards: player.claimed_item_rewards as any,
-            all_treasures_claimed: player.all_treasures_claimed,
-            pending_rewards: (player.pending_rewards || []) as any,
-            last_activity: new Date().toISOString(),
-          })
-          .eq("id", player.id);
-      } catch (e) {
-        // silent
-      }
+      savePlayerState();
     }, AUTOSAVE_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [player, gameSession, isAdmin]);
+  }, [savePlayerState]);
 
   // Подписка на игроков
   useEffect(() => {
@@ -266,7 +281,11 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
             // Still waiting for approval
             return;
           }
-          setPlayer(updatedPlayer);
+          // Only update from server if no recent local changes (race condition protection)
+          const timeSinceLocalUpdate = Date.now() - localUpdateRef.current;
+          if (timeSinceLocalUpdate > 3000) {
+            setPlayer(updatedPlayer);
+          }
         }
       }
     };
@@ -463,13 +482,14 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     async (amount: number) => {
       if (!player) return;
       const newMoney = Math.max(0, player.money + amount);
+      localUpdateRef.current = Date.now();
       setPlayer((prev) => (prev ? { ...prev, money: newMoney } : null));
       await supabase
         .from("players")
         .update({ money: newMoney })
         .eq("id", player.id);
     },
-    [player?.id]
+    [player?.id, player?.money]
   );
 
   const selectCard = async (card: CardType) => {
@@ -481,6 +501,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     addLog("select_card", { card }, player.nickname, player.id);
   };
 
+  const purchaseLockRef = useRef(false);
+
   const purchaseItem = async (item: ShopItem) => {
     if (!player || !gameSession || gameSession.status !== "active") {
       toast({
@@ -490,6 +512,13 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       });
       return;
     }
+
+    // Prevent double-click / race condition
+    if (purchaseLockRef.current) {
+      toast({ title: "Подождите...", variant: "destructive" });
+      return;
+    }
+    purchaseLockRef.current = true;
 
     // Check inventory limit (5 per category)
     const categoryItems = player.inventory.filter(i => i.category === item.category);
@@ -501,6 +530,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         description: `Максимум ${INVENTORY_LIMIT_PER_CATEGORY} предметов в категории. Продайте предмет на рынке.`,
         variant: "destructive",
       });
+      purchaseLockRef.current = false;
       return;
     }
 
@@ -511,6 +541,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         description: "На Этапе 2 базовые предметы больше нельзя купить",
         variant: "destructive",
       });
+      purchaseLockRef.current = false;
       return;
     }
 
@@ -532,6 +563,23 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
     if (player.money < price) {
       toast({ title: "Недостаточно средств", variant: "destructive" });
+      purchaseLockRef.current = false;
+      return;
+    }
+
+    // Server-side money verification to prevent dupe/race
+    const { data: freshPlayer } = await supabase
+      .from("players")
+      .select("money, inventory")
+      .eq("id", player.id)
+      .maybeSingle();
+    
+    if (!freshPlayer || freshPlayer.money < price) {
+      toast({ title: "Недостаточно средств (проверка сервера)", variant: "destructive" });
+      if (freshPlayer) {
+        setPlayer(prev => prev ? { ...prev, money: freshPlayer.money } : null);
+      }
+      purchaseLockRef.current = false;
       return;
     }
 
@@ -566,6 +614,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
+    localUpdateRef.current = Date.now();
     setPlayer({
       ...player,
       money: newMoney,
@@ -630,6 +679,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch {
       toast({ title: "Ошибка покупки", variant: "destructive" });
+    } finally {
+      purchaseLockRef.current = false;
     }
   };
 
@@ -651,6 +702,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     
     const newMoney = player.money + sellPrice;
     
+    localUpdateRef.current = Date.now();
     setPlayer(prev => prev ? { ...prev, inventory: updatedInv, money: newMoney } : null);
 
     try {
@@ -796,6 +848,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
             i.id === item.id ? { ...i, level: i.level - 1 } : i
           );
 
+    localUpdateRef.current = Date.now();
     setPlayer((prev) => (prev ? { ...prev, inventory: updatedInv } : null));
 
     try {
@@ -859,6 +912,19 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    // Server-side verify listing still exists (dupe protection)
+    const { data: dbListing } = await supabase
+      .from("market_listings")
+      .select("id")
+      .eq("id", listingId)
+      .maybeSingle();
+    
+    if (!dbListing) {
+      toast({ title: "Лот уже продан!", variant: "destructive" });
+      setMarketListings(prev => prev.filter(l => l.id !== listingId));
+      return;
+    }
+
     // Check inventory limit
     const categoryItems = player.inventory.filter(i => i.category === listing.item.category);
     const existingItem = player.inventory.find(i => i.id === listing.item.id);
@@ -882,6 +948,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       : [...player.inventory, { ...listing.item, level: 1 }];
     const newMoney = player.money - listing.price;
 
+    localUpdateRef.current = Date.now();
     setPlayer((prev) =>
       prev ? { ...prev, money: newMoney, inventory: updatedBuyerInv } : null
     );
@@ -988,6 +1055,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
     const updated = [...player.completed_missions, missionId];
     const newMoney = player.money + reward;
+    localUpdateRef.current = Date.now();
     setPlayer((prev) =>
       prev ? { ...prev, completed_missions: updated, money: newMoney } : null
     );
@@ -1010,11 +1078,13 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const removePlayer = useCallback(async () => {
     if (!player) return;
     addLog("player_exit", { nickname: player.nickname });
-    await supabase.from("players").delete().eq("id", player.id);
+    // Save final state instead of deleting — player can reconnect
+    await savePlayerState();
     localStorage.removeItem("eco_player_id");
     localStorage.removeItem("eco_session_id");
+    localStorage.removeItem("current_session");
     setPlayer(null);
-  }, [player]);
+  }, [player, savePlayerState, addLog]);
 
   const removePlayerById = useCallback(
     async (playerId: string) => {
