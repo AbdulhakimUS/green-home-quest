@@ -6,11 +6,13 @@ import { EventsPanel } from "./EventsPanel";
 import { Badge } from "@/components/ui/badge";
 import { formatLevel } from "@/lib/formatters";
 import { useMemo } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const INVENTORY_LIMIT = 5;
 
 export const HomeTab = () => {
   const { player, getInventoryCount } = useGame();
+  const { t } = useLanguage();
   
   const isStage2 = (player?.house_level || 0) > 25;
   const maxLevel = 50;
@@ -42,9 +44,9 @@ export const HomeTab = () => {
         <div className="text-center space-y-2">
           {isStage2 && <Star className="w-6 h-6 mx-auto text-yellow-500 animate-pulse" />}
           <Building2 className={`w-16 h-16 mx-auto ${isStage2 ? 'text-yellow-600' : 'text-primary'}`} />
-          <h2 className="text-2xl font-bold">{isStage2 ? '🏰 Ваш Эко Дворец' : 'Ваш Эко Дом'}</h2>
-          <p className="text-muted-foreground">Уровень {displayLevel}/{maxLevel}</p>
-          {isStage2 && <Badge variant="default" className="bg-gradient-to-r from-yellow-600 to-orange-600">Этап 2</Badge>}
+          <h2 className="text-2xl font-bold">{isStage2 ? t("home.titleStage2") : t("home.title")}</h2>
+          <p className="text-muted-foreground">{t("home.level")} {displayLevel}/{maxLevel}</p>
+          {isStage2 && <Badge variant="default" className="bg-gradient-to-r from-yellow-600 to-orange-600">{t("nav.stage2")}</Badge>}
         </div>
 
         {/* House visualization */}
@@ -95,7 +97,7 @@ export const HomeTab = () => {
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/20 rounded-full border-2 border-primary flex items-center justify-center hover-scale">
                   <Zap className="w-6 h-6 text-primary" />
                 </div>
-                <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full whitespace-nowrap">Ур.{item.level}</span>
+                <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full whitespace-nowrap">{t("home.itemLevel")}{item.level}</span>
               </div>
             </div>
           ))}
@@ -106,7 +108,7 @@ export const HomeTab = () => {
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-500/20 rounded-full border-2 border-blue-500 flex items-center justify-center hover-scale">
                   <Droplets className="w-6 h-6 text-blue-500" />
                 </div>
-                <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs bg-blue-500 text-white px-2 py-1 rounded-full whitespace-nowrap">Ур.{item.level}</span>
+                <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs bg-blue-500 text-white px-2 py-1 rounded-full whitespace-nowrap">{t("home.itemLevel")}{item.level}</span>
               </div>
             </div>
           ))}
@@ -117,7 +119,7 @@ export const HomeTab = () => {
                 <div className="w-8 h-8 md:w-10 md:h-10 bg-success/30 rounded-full border-2 border-success flex items-center justify-center hover-scale">
                   <Trees className="w-5 h-5 text-success" />
                 </div>
-                <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs bg-success text-white px-2 py-1 rounded-full whitespace-nowrap">Ур.{item.level}</span>
+                <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs bg-success text-white px-2 py-1 rounded-full whitespace-nowrap">{t("home.itemLevel")}{item.level}</span>
               </div>
             </div>
           ))}
@@ -128,7 +130,7 @@ export const HomeTab = () => {
               <div className="flex items-center gap-1.5 bg-card/90 backdrop-blur-sm px-2 py-1.5 rounded-lg border border-border">
                 <Droplets className="w-4 h-4 text-blue-500" />
                 <div className="space-y-0.5">
-                  <div className="text-[10px] font-medium">Напор воды</div>
+                  <div className="text-[10px] font-medium">{t("home.waterPressure")}</div>
                   <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
                     <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: `${waterIntensity}%` }} />
                   </div>
@@ -141,7 +143,7 @@ export const HomeTab = () => {
               <div className="flex items-center gap-1.5 bg-card/90 backdrop-blur-sm px-2 py-1.5 rounded-lg border border-border">
                 <Zap className="w-4 h-4 text-yellow-500" />
                 <div className="space-y-0.5">
-                  <div className="text-[10px] font-medium">Электричество</div>
+                  <div className="text-[10px] font-medium">{t("home.electricity")}</div>
                   <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
                     <div className="h-full bg-yellow-500 transition-all duration-500" style={{ width: `${energyIntensity}%` }} />
                   </div>
@@ -153,7 +155,7 @@ export const HomeTab = () => {
           {player?.inventory.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center z-20 p-3">
               <div className="bg-card/95 backdrop-blur-sm px-4 py-3 rounded-xl border-2 border-dashed border-muted-foreground/30 text-center">
-                <p className="text-muted-foreground text-xs sm:text-sm">Купите предметы в магазине!</p>
+                <p className="text-muted-foreground text-xs sm:text-sm">{t("home.buyItems")}</p>
               </div>
             </div>
           )}
@@ -162,9 +164,9 @@ export const HomeTab = () => {
         {/* Inventory counters with limit */}
         <div className="space-y-3 sm:space-y-4">
           {[
-            { icon: Zap, label: "Энергия", items: energyItems, color: "text-yellow-500", cat: "energy" as const },
-            { icon: Wind, label: "Кислород", items: null, color: "text-info", cat: null },
-            { icon: Droplets, label: "Вода", items: waterItems, color: "text-blue-500", cat: "water" as const },
+            { icon: Zap, label: t("category.energy"), items: energyItems, color: "text-yellow-500", cat: "energy" as const },
+            { icon: Wind, label: t("category.oxygen"), items: null, color: "text-info", cat: null },
+            { icon: Droplets, label: t("category.water"), items: waterItems, color: "text-blue-500", cat: "water" as const },
           ].map(({ icon: Icon, label, items, color, cat }) => {
             const count = items ? items.length : null;
             const isFull = count !== null && count >= INVENTORY_LIMIT;
@@ -199,8 +201,8 @@ export const HomeTab = () => {
         {/* Pending rewards */}
         {player?.pending_rewards && player.pending_rewards.length > 0 && (
           <div className="bg-warning/10 border border-warning/30 rounded-lg p-3">
-            <p className="text-sm font-semibold text-warning mb-2">📦 Ожидающие награды ({player.pending_rewards.length})</p>
-            <p className="text-xs text-muted-foreground">Освободите слот в инвентаре, чтобы забрать награды</p>
+            <p className="text-sm font-semibold text-warning mb-2">{t("home.pendingRewards")} ({player.pending_rewards.length})</p>
+            <p className="text-xs text-muted-foreground">{t("home.pendingRewardsDesc")}</p>
           </div>
         )}
 
