@@ -3,6 +3,7 @@ import { Bell, X, ShoppingCart, Gift, Wifi, MessageSquare, AlertTriangle } from 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export type NotificationType = "purchase" | "sale" | "mission" | "reconnect" | "admin" | "warning";
 
@@ -32,20 +33,12 @@ export const NotificationsProvider = ({ children }: { children: ReactNode }) => 
   const addNotification = useCallback((type: NotificationType, title: string, message: string, important?: boolean) => {
     const newNotif: GameNotification = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      type,
-      title,
-      message,
+      type, title, message,
       timestamp: Date.now(),
       read: false,
       important: important || false,
     };
-
-    setNotifications(prev => {
-      const updated = [newNotif, ...prev].slice(0, 50); // Keep max 50
-      return updated;
-    });
-
-    // Auto-remove non-important after 30 seconds
+    setNotifications(prev => [newNotif, ...prev].slice(0, 50));
     if (!important) {
       setTimeout(() => {
         setNotifications(prev => prev.filter(n => n.id !== newNotif.id || n.important));
@@ -57,9 +50,7 @@ export const NotificationsProvider = ({ children }: { children: ReactNode }) => 
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   }, []);
 
-  const clearAll = useCallback(() => {
-    setNotifications([]);
-  }, []);
+  const clearAll = useCallback(() => { setNotifications([]); }, []);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -87,34 +78,24 @@ const getIcon = (type: NotificationType) => {
   }
 };
 
-const formatTime = (ts: number) => {
-  const diff = Math.floor((Date.now() - ts) / 1000);
-  if (diff < 60) return `${diff}с назад`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}м назад`;
-  return `${Math.floor(diff / 3600)}ч назад`;
-};
-
 export const NotificationsPanel = () => {
   const { notifications, unreadCount, markAllRead, clearAll } = useNotifications();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
+
+  const formatTime = (ts: number) => {
+    const diff = Math.floor((Date.now() - ts) / 1000);
+    if (diff < 60) return `${diff}${t("notif.secondsAgo")}`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}${t("notif.minutesAgo")}`;
+    return `${Math.floor(diff / 3600)}${t("notif.hoursAgo")}`;
+  };
 
   return (
     <div className="relative">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="relative p-2"
-        onClick={() => {
-          setOpen(!open);
-          if (!open) markAllRead();
-        }}
-      >
+      <Button variant="ghost" size="sm" className="relative p-2" onClick={() => { setOpen(!open); if (!open) markAllRead(); }}>
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <Badge
-            variant="destructive"
-            className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-[10px]"
-          >
+          <Badge variant="destructive" className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-[10px]">
             {unreadCount > 9 ? "9+" : unreadCount}
           </Badge>
         )}
@@ -125,32 +106,21 @@ export const NotificationsPanel = () => {
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-card border border-border rounded-lg shadow-lg z-50 overflow-hidden">
             <div className="flex items-center justify-between p-3 border-b border-border">
-              <h3 className="font-semibold text-sm">Уведомления</h3>
+              <h3 className="font-semibold text-sm">{t("notif.title")}</h3>
               <div className="flex gap-1">
                 {notifications.length > 0 && (
-                  <Button variant="ghost" size="sm" onClick={clearAll} className="text-xs h-7">
-                    Очистить
-                  </Button>
+                  <Button variant="ghost" size="sm" onClick={clearAll} className="text-xs h-7">{t("notif.clear")}</Button>
                 )}
-                <Button variant="ghost" size="sm" onClick={() => setOpen(false)} className="h-7 w-7 p-0">
-                  <X className="w-4 h-4" />
-                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setOpen(false)} className="h-7 w-7 p-0"><X className="w-4 h-4" /></Button>
               </div>
             </div>
             <ScrollArea className="max-h-80">
               {notifications.length === 0 ? (
-                <div className="p-6 text-center text-muted-foreground text-sm">
-                  Нет уведомлений
-                </div>
+                <div className="p-6 text-center text-muted-foreground text-sm">{t("notif.empty")}</div>
               ) : (
                 <div className="divide-y divide-border">
                   {notifications.map(n => (
-                    <div
-                      key={n.id}
-                      className={`p-3 flex gap-3 items-start transition-colors ${
-                        !n.read ? "bg-primary/5" : ""
-                      } ${n.important ? "border-l-2 border-l-warning" : ""}`}
-                    >
+                    <div key={n.id} className={`p-3 flex gap-3 items-start transition-colors ${!n.read ? "bg-primary/5" : ""} ${n.important ? "border-l-2 border-l-warning" : ""}`}>
                       <div className="mt-0.5 flex-shrink-0">{getIcon(n.type)}</div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium leading-tight">{n.title}</p>

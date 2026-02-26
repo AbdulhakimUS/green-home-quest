@@ -4,44 +4,46 @@ import { useGame } from "@/contexts/GameContext";
 import { CardType } from "@/types/game";
 import { toast } from "sonner";
 import { useMemo, useCallback } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const CardsTab = () => {
   const { selectCard, player } = useGame();
+  const { t } = useLanguage();
 
   const cards = useMemo(() => [
     {
       type: "energy" as CardType,
       icon: Zap,
-      title: "Энергия",
-      description: "Солнечные панели, ветряки и другие источники энергии",
+      title: t("category.energy"),
+      description: t("cards.energyDesc"),
       color: "from-warning/20 to-warning/5 border-warning/30"
     },
     {
       type: "water" as CardType,
       icon: Droplets,
-      title: "Вода",
-      description: "Системы сбора дождевой воды и фильтрации",
+      title: t("category.water"),
+      description: t("cards.waterDesc"),
       color: "from-info/20 to-info/5 border-info/30"
     },
     {
       type: "greenery" as CardType,
       icon: Leaf,
-      title: "Зелень",
-      description: "Деревья, кусты и растения для экологии",
+      title: t("category.greenery"),
+      description: t("cards.greeneryDesc"),
       color: "from-success/20 to-success/5 border-success/30"
     }
-  ], []);
+  ], [t]);
 
   const handleCardSelect = useCallback((cardType: CardType) => {
     selectCard(cardType);
-    toast.success(`Выбрана карта: ${cards.find(c => c.type === cardType)?.title}`);
-  }, [selectCard, cards]);
+    toast.success(`${t("cards.selectedCard")}: ${cards.find(c => c.type === cardType)?.title}`);
+  }, [selectCard, cards, t]);
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
       <div className="text-center space-y-1.5 sm:space-y-2">
-        <h2 className="text-xl sm:text-2xl font-bold">Выберите категорию</h2>
-        <p className="text-sm sm:text-base text-muted-foreground">Выберите карту для открытия магазина</p>
+        <h2 className="text-xl sm:text-2xl font-bold">{t("cards.title")}</h2>
+        <p className="text-sm sm:text-base text-muted-foreground">{t("cards.desc")}</p>
       </div>
 
       <div className="grid gap-3 sm:gap-4">
@@ -67,7 +69,7 @@ export const CardsTab = () => {
                       <span className="truncate">{card.title}</span>
                       {isSelected && (
                         <span className="text-[10px] sm:text-xs bg-primary text-primary-foreground px-2 py-0.5 sm:py-1 rounded-full whitespace-nowrap flex-shrink-0">
-                          Выбрано
+                          {t("cards.selected")}
                         </span>
                       )}
                     </CardTitle>

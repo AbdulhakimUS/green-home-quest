@@ -9,21 +9,21 @@ import { toast } from "sonner";
 import { ItemDetailsDialog } from "./ItemDetailsDialog";
 import { useState } from "react";
 import { formatMoney } from "@/lib/formatters";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const INVENTORY_LIMIT = 5;
 
 export const ShopTab = () => {
   const { player, purchaseItem, gameSession, getInventoryCount } = useGame();
+  const { t } = useLanguage();
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
 
   if (!player?.selected_card) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 animate-fade-in">
         <AlertCircle className="w-16 h-16 text-warning" />
-        <h2 className="text-2xl font-bold">Выберите карту</h2>
-        <p className="text-muted-foreground text-center">
-          Для доступа к магазину сначала выберите карту в разделе "Карты"
-        </p>
+        <h2 className="text-2xl font-bold">{t("shop.selectCard")}</h2>
+        <p className="text-muted-foreground text-center">{t("shop.selectCardDesc")}</p>
       </div>
     );
   }
@@ -33,46 +33,35 @@ export const ShopTab = () => {
   const categoryCount = getInventoryCount(player.selected_card);
   const isFull = categoryCount >= INVENTORY_LIMIT;
 
-  const handlePurchase = async (item: ShopItem) => {
-    const existingItem = player.inventory.find(
-      i => i.id === item.id && i.category === item.category
-    );
-    
-    // Check inventory limit for new items
-    if (!existingItem && isFull) {
-      toast.error(`Инвентарь заполнен (${INVENTORY_LIMIT}/${INVENTORY_LIMIT})! Продайте предмет на рынке.`);
-      return;
-    }
+  const getCategoryName = (cat: string) => t(`category.${cat}`);
 
-    // Stage 2 check
-    if (isStage2 && item.tier <= 3) {
-      toast.error("На Этапе 2 базовые предметы недоступны");
+  const handlePurchase = async (item: ShopItem) => {
+    const existingItem = player.inventory.find(i => i.id === item.id && i.category === item.category);
+    if (!existingItem && isFull) {
+      toast.error(`${t("shop.inventoryFullToast")}`);
       return;
     }
-    
+    if (isStage2 && item.tier <= 3) {
+      toast.error(t("shop.stage2Locked"));
+      return;
+    }
     const currentLevel = existingItem ? existingItem.level : 0;
     const cost = Math.floor(item.basePrice * Math.pow(1.5, currentLevel));
-
     if (player.money < cost) {
-      toast.error("Недостаточно средств!");
+      toast.error(t("shop.notEnough"));
       return;
     }
-
     await purchaseItem(item);
   };
 
   const getCost = (item: ShopItem) => {
-    const existingItem = player.inventory.find(
-      i => i.id === item.id && i.category === item.category
-    );
+    const existingItem = player.inventory.find(i => i.id === item.id && i.category === item.category);
     const currentLevel = existingItem ? existingItem.level : 0;
     return Math.floor(item.basePrice * Math.pow(1.5, currentLevel));
   };
 
   const getLevel = (item: ShopItem) => {
-    const existingItem = player.inventory.find(
-      i => i.id === item.id && i.category === item.category
-    );
+    const existingItem = player.inventory.find(i => i.id === item.id && i.category === item.category);
     return existingItem ? existingItem.level : 0;
   };
 
@@ -83,32 +72,20 @@ export const ShopTab = () => {
     return acc;
   }, {} as Record<number, ShopItem[]>);
 
-  const tierNames: Record<number, string> = {
-    1: "Базовые",
-    2: "Улучшенные", 
-    3: "Продвинутые",
-    4: "Профессиональные",
-    5: "Элитные",
-    6: "Легендарные"
-  };
-
   return (
     <>
       <div className="space-y-4 sm:space-y-6 animate-fade-in">
         <div className="text-center space-y-2">
           <ShoppingBag className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-primary" />
-          <h2 className="text-xl sm:text-2xl font-bold">Магазин</h2>
+          <h2 className="text-xl sm:text-2xl font-bold">{t("shop.title")}</h2>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Категория: {player.selected_card === "energy" ? "Энергия" : player.selected_card === "water" ? "Вода" : "Зелень"}
+            {t("shop.category")}: {getCategoryName(player.selected_card)}
           </p>
-          {/* Inventory counter */}
           <Badge variant={isFull ? "destructive" : "secondary"} className="text-sm">
-            Инвентарь: {categoryCount}/{INVENTORY_LIMIT}
+            {t("shop.inventory")}: {categoryCount}/{INVENTORY_LIMIT}
           </Badge>
           {isFull && (
-            <p className="text-xs text-destructive">
-              ⚠️ Инвентарь заполнен! Продайте предмет на рынке для покупки нового.
-            </p>
+            <p className="text-xs text-destructive">{t("shop.inventoryFullDesc")}</p>
           )}
         </div>
 
@@ -119,9 +96,9 @@ export const ShopTab = () => {
           return (
             <div key={tier} className={`space-y-3 ${isLockedStage2 ? 'opacity-40' : ''}`}>
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs">Тир {tier}</Badge>
-                <span className="text-sm font-medium text-muted-foreground">{tierNames[tierNum]}</span>
-                {isLockedStage2 && <Badge variant="destructive" className="text-[10px]">Этап 1</Badge>}
+                <Badge variant="outline" className="text-xs">{t("shop.tier")} {tier}</Badge>
+                <span className="text-sm font-medium text-muted-foreground">{t(`tier.${tier}`)}</span>
+                {isLockedStage2 && <Badge variant="destructive" className="text-[10px]">{t("shop.stage1")}</Badge>}
               </div>
               
               <div className="grid gap-3 sm:gap-4">
@@ -145,7 +122,7 @@ export const ShopTab = () => {
                               {item.name}
                               {level > 0 && (
                                 <Badge variant="default" className="text-[10px] sm:text-xs">
-                                  Ур. {level}
+                                  {t("home.itemLevel")} {level}
                                 </Badge>
                               )}
                             </CardTitle>
@@ -170,7 +147,7 @@ export const ShopTab = () => {
                             className="min-w-[100px] text-xs sm:text-sm w-full sm:w-auto"
                             size="sm"
                           >
-                            {blocked ? "🔒" : level > 0 ? "Улучшить" : "Купить"} {formatMoney(cost)}
+                            {blocked ? "🔒" : level > 0 ? t("shop.upgrade") : t("shop.buy")} {formatMoney(cost)}
                           </Button>
                         </div>
                       </CardContent>

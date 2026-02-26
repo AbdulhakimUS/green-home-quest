@@ -51,6 +51,7 @@ export type Database = {
           admin_user_id: string | null
           code: string
           created_at: string | null
+          default_language: string
           id: string
           initial_balance: number | null
           started_at: string | null
@@ -65,6 +66,7 @@ export type Database = {
           admin_user_id?: string | null
           code: string
           created_at?: string | null
+          default_language?: string
           id?: string
           initial_balance?: number | null
           started_at?: string | null
@@ -79,6 +81,7 @@ export type Database = {
           admin_user_id?: string | null
           code?: string
           created_at?: string | null
+          default_language?: string
           id?: string
           initial_balance?: number | null
           started_at?: string | null

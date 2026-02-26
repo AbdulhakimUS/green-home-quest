@@ -1,0 +1,1 @@
+ALTER TABLE public.game_sessions ADD COLUMN default_language TEXT NOT NULL DEFAULT 'ru';
